@@ -2,7 +2,7 @@ const cron = require("node-cron");
 const { getTpmAndSave } = require("./threesCurry");
 
 const cronJob = () => {
-  const threesCurryTask = cron.schedule("* */10 * * * *", () => {
+  const threesCurryTask = cron.schedule("*/10 * * * * *", () => {
     getTpmAndSave();
   });
 
