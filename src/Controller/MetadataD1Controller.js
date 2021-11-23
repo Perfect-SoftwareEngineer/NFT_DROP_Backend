@@ -1,4 +1,5 @@
 var {metadataModel} = require('../Model/MetadataD1Model')
+var {userModel} = require('../Model/UserModel')
 var HttpStatusCodes = require('http-status-codes');
 
 
@@ -22,6 +23,14 @@ const getAll = async (request, response) => {
 const create = async (request, response) => {
   try {
 
+    const user = await userModel.find({ wallet: request.wallet });
+    if (!user) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
+    }
+    if(user[0].role != "admin") {
+      return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
+    }
+
     const {
       name,
       description,
@@ -37,16 +46,23 @@ const create = async (request, response) => {
       externalUrl,
       tokenId
     });
-
+    console.log(metadata)
     await metadata.save();
     return response.status(HttpStatusCodes.OK).send(metadata._id);
   } catch(err) {
-    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 
 const update = async (request, response) => {
   try {
+    const user = await userModel.find({ wallet: request.wallet });
+    if (!user) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
+    }
+    if(user[0].role != "admin") {
+      return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
+    }
 
     const {
       name,

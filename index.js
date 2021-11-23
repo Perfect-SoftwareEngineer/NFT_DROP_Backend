@@ -9,6 +9,8 @@ const {connectDB} = require('./src/config/dbconnect');
 
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
+var RouterAuth = require('./src/Router/Auth');
+var RouterImage = require('./src/Router/Image');
 
 require("dotenv").config();
 //Create server 
@@ -29,3 +31,5 @@ app.use(fileupload());
 //connect Router
 app.use('/api/metadata/drop1', RouterMetadataD1);
 app.use('/api/metadata/drop3', RouterMetadataD3);
+app.use('/api/auth', RouterAuth);
+app.use('/api/image', RouterImage);

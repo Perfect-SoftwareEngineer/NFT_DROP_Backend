@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {signin} = require('../Controller/UserController');
+var {signin, signup} = require('../Controller/UserController');
 
 router.post('/signin', (request, response) => {
     signin(request, response)
