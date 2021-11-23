@@ -9,6 +9,8 @@ const {connectDB} = require('./src/config/dbconnect');
 
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
+const RouterCurry = require('./src/Router/Curry');
+const cronJob = require('./src/cronJob');
 
 require("dotenv").config();
 //Create server 
@@ -29,3 +31,7 @@ app.use(fileupload());
 //connect Router
 app.use('/api/metadata/drop1', RouterMetadataD1);
 app.use('/api/metadata/drop3', RouterMetadataD3);
+app.use('/api/curry', RouterCurry);
+
+// cron job
+cronJob();
