@@ -1,24 +1,23 @@
 let mongoose = require('mongoose')
 
-let userSchema = new mongoose.Schema({
+let holderSchema = new mongoose.Schema({
     wallet : {
         type : String,
         unique : true,
         require : true,
     },
-    signature : {
-        type : String,
-        require : true,
-        require : true,
-    },
-    role : {
+    tokenId : {
         type: String,
         require : true
+    },
+    quantity : {
+        type: Number,
+        require: true
     }
   },{
       timestamps : true,
   });
 
 module.exports = {
-    userModel : mongoose.model('user', userSchema)
+    holderD1Model : mongoose.model('holder_drop1', holderSchema)
 }
