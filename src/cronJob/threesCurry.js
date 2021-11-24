@@ -1,5 +1,6 @@
 const { default: axios } = require("axios");
 const { threesCurryModel } = require("../Model/ThreesCurryModel");
+const { createTweet, client } = require('./twitter');
 
 /**
  *
@@ -63,12 +64,32 @@ const storeTotalThreesInDB = (playerId, value) => {
   );
 };
 
-const getTpmAndSave = () => {
-  tpmFetcher(124, storeTotalThreesInDB);
+/**
+ * @param {number} playerId => ThreesCurryModel
+ */
+const checkDBValue = (playerId) => {
+    return threesCurryModel.findOne({ playerId });
+}
+
+/**
+ * Run subroutine to
+ * 1. Fetch new TPM value
+ * 2. Compare value to check if it needs to be updated/tweeted about
+ * 3. Update/Tweet about it if necessary
+ */
+const runRoutine = () => {
+  tpmFetcher(124, async (playerId, value) => {
+      const document = await checkDBValue(playerId);
+      
+      if (document.value !== value) {
+          await storeTotalThreesInDB(playerId, value);
+          await createTweet(`Steph Curry 3-point count: ${value}`);
+      }
+  });
 };
 
 module.exports = {
   tpmFetcher,
   storeTotalThreesInDB,
-  getTpmAndSave,
+  runRoutine,
 };
