@@ -12,6 +12,8 @@ var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
+const RouterStripe = require('./src/Router/Stripe');
+
 const cronJob = require('./src/cronJob');
 
 require("dotenv").config();
@@ -36,6 +38,7 @@ app.use('/api/metadata/drop3', RouterMetadataD3);
 app.use('/api/auth', RouterAuth);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
+app.use('/api/stripe', RouterStripe);
 
 // cron job
 cronJob();
