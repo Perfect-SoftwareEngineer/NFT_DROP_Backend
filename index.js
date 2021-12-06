@@ -13,6 +13,7 @@ var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
 const RouterStripe = require('./src/Router/Stripe');
+const RouterPaymentInfo = require('./src/Router/PaymentInfo');
 
 const cronJob = require('./src/cronJob');
 
@@ -39,6 +40,7 @@ app.use('/api/auth', RouterAuth);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
 app.use('/api/stripe', RouterStripe);
+app.use('/api/paymentinfo', RouterPaymentInfo);
 
 // cron job
 cronJob();
