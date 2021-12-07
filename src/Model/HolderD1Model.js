@@ -3,10 +3,13 @@ let mongoose = require('mongoose')
 let holderSchema = new mongoose.Schema({
     wallet : {
         type : String,
-        unique : true,
         require : true,
     },
     tokenId : {
+        type: String,
+        require : true
+    },
+    uri : {
         type: String,
         require : true
     },

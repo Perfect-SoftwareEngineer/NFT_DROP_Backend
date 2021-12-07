@@ -77,15 +77,16 @@ const update = async (request, response) => {
       return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
     }
 
-    metadata.name = name;
-    metadata.description = description;
-    metadata.image = image;
-    metadata.externalUrl = externalUrl;
+    metadata[0].name = name;
+    metadata[0].description = description;
+    metadata[0].image = image;
+    metadata[0].externalUrl = externalUrl;
 
-    await metadata.save();
+    await metadata[0].save();
     
-    return response.status(HttpStatusCodes.OK).send(metadata._id);
+    return response.status(HttpStatusCodes.OK).send(metadata[0]._id);
   } catch(err) {
+    console.log(err)
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }
 }
