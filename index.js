@@ -12,8 +12,12 @@ var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
+
 var RouterLocker = require('./src/Router/Locker');
 var RouterSubscribeEmail = require('./src/Router/SubscribeEmail');
+const RouterStripe = require('./src/Router/Stripe');
+const RouterPaymentInfo = require('./src/Router/PaymentInfo');
+
 const cronJob = require('./src/cronJob');
 const {watchEtherTransfers} = require('./src/Controller/HolderD1Controller');
 require("dotenv").config();
@@ -40,6 +44,8 @@ app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
 app.use('/api/locker', RouterLocker);
 app.use('/api/subscribe/email', RouterSubscribeEmail);
+app.use('/api/stripe', RouterStripe);
+app.use('/api/paymentinfo', RouterPaymentInfo);
 
 // cron job
 // cronJob();
