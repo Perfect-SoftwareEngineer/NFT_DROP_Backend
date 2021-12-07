@@ -64,16 +64,16 @@ const update = async (request, response) => {
       return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
     }
 
-    paymentInfo.email = email;
-    paymentInfo.wallet = wallet;
-    paymentInfo.tokenId = tokenId;
-    paymentInfo.status = status;
-    paymentInfo.ip = ip;
-    paymentInfo.country_name = country_name;
+    paymentInfo[0].email = email;
+    paymentInfo[0].wallet = wallet;
+    paymentInfo[0].tokenId = tokenId;
+    paymentInfo[0].status = status;
+    paymentInfo[0].ip = ip;
+    paymentInfo[0].country_name = country_name;
 
-    await paymentInfo.save();
+    await paymentInfo[0].save();
     
-    return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
+    return response.status(HttpStatusCodes.OK).send(paymentInfo[0]._id);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }
