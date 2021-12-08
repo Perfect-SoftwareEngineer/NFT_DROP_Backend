@@ -12,17 +12,18 @@ AWS.config.update({
 
 const s3 = new AWS.S3()
 
-router.post('/upload', MiddlewareAuth,  async (request, response) => {
+router.post('/upload',  async (request, response) => {
     const image = request.files.file.data;
-    console.log(image)
+    const name = request.files.file.name;
+    const type = request.files.file.mimetype;
     try{
         s3.upload({
             Bucket: bucket,
-            Key: `8-ball.jpeg`,
+            Key: name,
             Body: image,
             ACL: 'public-read',
             ContentEncoding: 'base64',
-            ContentType: 'image/jpeg'
+            ContentType: type
         }, function(err, data) {
             console.log(err, data);
         })

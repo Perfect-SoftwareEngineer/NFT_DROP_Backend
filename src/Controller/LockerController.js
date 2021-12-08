@@ -11,8 +11,8 @@ const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.POLYGON_N
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
-const serverUrl = "https://kdsmurshlxp8.moralishost.com:2053/server";
-const appId = "DHSndgGqJBQ4WEQnY0DLw6Mk3uQKP1ZaKWOLhAWP";
+const serverUrl = process.env.MORALIS_SERVER_URL;
+const appId = process.env.MORALIS_APP_ID;
 Moralis.start({ serverUrl, appId });
 
 const getNft = async (request, response) => {
