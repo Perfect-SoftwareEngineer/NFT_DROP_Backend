@@ -8,7 +8,7 @@ const get = async (request, response) => {
   if (!metadata) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }
-  return response.status(HttpStatusCodes.OK).send(metadata);
+  return response.status(HttpStatusCodes.OK).send(metadata[0]);
 }
 
 const getAll = async (request, response) => {
@@ -27,6 +27,7 @@ const create = async (request, response) => {
       description,
       image,
       externalUrl,
+      animationUrl,
       tokenId,
     } = request.body;
 
@@ -34,7 +35,8 @@ const create = async (request, response) => {
       name,
       description,
       image,
-      externalUrl,
+      external_url: externalUrl,
+      animation_url: animationUrl,
       tokenId
     });
 
@@ -53,6 +55,7 @@ const update = async (request, response) => {
       description,
       image,
       externalUrl,
+      animationUrl,
       tokenId,
     } = request.body;
 
@@ -65,6 +68,7 @@ const update = async (request, response) => {
     metadata[0].description = description;
     metadata[0].image = image;
     metadata[0].externalUrl = externalUrl;
+    metadata[0].animation_url = animationUrl;
 
     await metadata[0].save();
     

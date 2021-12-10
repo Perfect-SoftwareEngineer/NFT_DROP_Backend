@@ -9,7 +9,7 @@ const get = async (request, response) => {
   if (!metadata) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }
-  return response.status(HttpStatusCodes.OK).send(metadata);
+  return response.status(HttpStatusCodes.OK).send(metadata[0]);
 }
 
 const getAll = async (request, response) => {
@@ -23,19 +23,20 @@ const getAll = async (request, response) => {
 const create = async (request, response) => {
   try {
 
-    const user = await userModel.find({ wallet: request.wallet });
-    if (!user) {
-      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
-    }
-    if(user[0].role != "admin") {
-      return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
-    }
+    // const user = await userModel.find({ wallet: request.wallet });
+    // if (!user) {
+    //   return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
+    // }
+    // if(user[0].role != "admin") {
+    //   return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
+    // }
 
     const {
       name,
       description,
       image,
       externalUrl,
+      animationUrl,
       tokenId,
     } = request.body;
 
@@ -43,7 +44,8 @@ const create = async (request, response) => {
       name,
       description,
       image,
-      externalUrl,
+      external_url: externalUrl,
+      animation_url: animationUrl,
       tokenId
     });
     console.log(metadata)
@@ -56,19 +58,20 @@ const create = async (request, response) => {
 
 const update = async (request, response) => {
   try {
-    const user = await userModel.find({ wallet: request.wallet });
-    if (!user) {
-      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
-    }
-    if(user[0].role != "admin") {
-      return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
-    }
+    // const user = await userModel.find({ wallet: request.wallet });
+    // if (!user) {
+    //   return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
+    // }
+    // if(user[0].role != "admin") {
+    //   return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
+    // }
 
     const {
       name,
       description,
       image,
       externalUrl,
+      animationUrl,
       tokenId,
     } = request.body;
 
@@ -80,8 +83,8 @@ const update = async (request, response) => {
     metadata[0].name = name;
     metadata[0].description = description;
     metadata[0].image = image;
-    metadata[0].externalUrl = externalUrl;
-
+    metadata[0].external_url = externalUrl;
+    metadata[0].animation_url = animationUrl;
     await metadata[0].save();
     
     return response.status(HttpStatusCodes.OK).send(metadata[0]._id);

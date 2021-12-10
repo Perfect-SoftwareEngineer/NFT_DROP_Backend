@@ -1,13 +1,16 @@
 const Web3 = require("web3");
 var {holderD1Model} = require('../Model/HolderD1Model')
+var {paymentInfoModel} = require('../Model/PaymentInfoModel')
 var ERC1155ABI = require('../config/ABI/ERC1155');
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/2de4d25aeea745b181468b898cf4e899'));
+require("dotenv").config();
+
+const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.POLYGON_TEST_NODE));
 
 async function watchEtherTransfers() {
 	const topic = web3.utils.keccak256('TransferSingle(address,address,address,uint256,uint256)');
 	web3.eth.subscribe('logs', {
-		address: '0x7C9A41EFd71b1942c222058DB93C5685bA1D97fB',
+		address: process.env.DROP1_ADDRESS,
 	}, function(error, result){
 		if(error){ console.log(error) }
 		if (!error && result.topics[0].toLowerCase() == topic) {
@@ -20,17 +23,20 @@ async function watchEtherTransfers() {
 }
 
 async function handleTx(from, to, tokenId) {
-	
+	if(from == process.env.ADMIN_WALLET.toLowerCase()) {
+		updatePaymentInfo(to, tokenId);
+	}
 	if(web3.utils.toBN(from).toString() != 0) {
-		await updateDB(from, tokenId);
+		updateDB(from, tokenId);
 	}
 	if(web3.utils.toBN(to).toString() != 0) {
-		await updateDB(to, tokenId);
+		updateDB(to, tokenId);
 	}
+	
 }
 
 async function updateDB(wallet, tokenId) {
-	const drop1Contract = new web3.eth.Contract(ERC1155ABI, "0x7C9A41EFd71b1942c222058DB93C5685bA1D97fB");
+	const drop1Contract = new web3.eth.Contract(ERC1155ABI, process.env.DROP1_ADDRESS);
 	const balance = await drop1Contract.methods.balanceOf(wallet, Number(tokenId)).call();
 	const uri = await drop1Contract.methods.uri(Number(tokenId)).call();
 	let holder = await holderD1Model.find({wallet: wallet, tokenId: tokenId});
@@ -55,6 +61,14 @@ async function updateDB(wallet, tokenId) {
 			holder[0].quantity = Number(balance);
 			await holder[0].save();
 		}
+	}
+}
+
+async function updatePaymentInfo(to, tokenId) {
+	paymentInfo = await paymentInfoModel.find({wallet: to, tokenId: tokenId.toString(), status : "pending"});
+	if(paymentInfo.length > 0) {
+		paymentInfo[0]['status'] = "transferred";
+		await paymentInfo[0].save();
 	}
 }
 module.exports = {

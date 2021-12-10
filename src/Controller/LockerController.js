@@ -27,6 +27,7 @@ const getNft = async (request, response) => {
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
     const galaData = await getGalaData(wallet);
+    console.log(drop1Data, decentData, sandboxData)
     const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData];
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {

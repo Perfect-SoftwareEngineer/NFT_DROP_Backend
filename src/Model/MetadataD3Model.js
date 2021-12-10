@@ -15,7 +15,10 @@ let metadataSchema = new mongoose.Schema({
         unique: true,
         require : true
     },
-    externalUrl : {
+    external_url : {
+        type: String,
+    },
+    animation_url : {
         type: String,
     },
     tokenId : {
