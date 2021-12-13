@@ -2,6 +2,8 @@ const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
 var ERC1155ABI = require('../config/ABI/ERC1155');
 var {paymentInfoModel} = require('../Model/PaymentInfoModel')
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 require("dotenv").config();
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/2de4d25aeea745b181468b898cf4e899'));
@@ -42,13 +44,20 @@ const getAll = async (request, response) => {
   return response.status(HttpStatusCodes.OK).send(paymentInfo);
 }
 
+const getCount = async (request, response) => {
+  const count = await paymentInfoModel.count();
+  console.log(count);
+  return response.status(HttpStatusCodes.OK).send(JSON.stringify({'count': count}));
+}
+
 const create = async (request, response) => {
   try {
     const {
       email,
       wallet,
       ip,
-      country_name
+      country_name,
+      date
     } = request.body;
 
     const paymentInfo = new paymentInfoModel({
@@ -56,9 +65,25 @@ const create = async (request, response) => {
       wallet: wallet.toLowerCase(),
       status : "pending",
       ip,
-      country_name
+      country_name,
+      date
     });
     await paymentInfo.save();
+
+    const data= {
+      to: email,
+      from: 'contact@lunamarket.io',
+      templateId: process.env.SENDGRID_ORDER_CONFIRMATION_TRANSACTION_ID,
+      dynamic_template_data: {
+        "person_name": "",
+        "time": date,
+        "username": "",
+        "amount": "$297.40",
+        "sub_total_amount": "$297.40",
+        "wallet_address": wallet
+      }
+    };
+    sgMail.send(data);
     return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
@@ -74,7 +99,8 @@ const update = async (request, response) => {
       tokenId,
       status,
       ip,
-      country_name
+      country_name,
+      date
     } = request.body;
 
     let paymentInfo = await paymentInfoModel.find({_id: _id});
@@ -88,6 +114,7 @@ const update = async (request, response) => {
     paymentInfo[0].status = status;
     paymentInfo[0].ip = ip;
     paymentInfo[0].country_name = country_name;
+    paymentInfo[0].date = date;
 
     await paymentInfo[0].save();
     
@@ -101,6 +128,7 @@ module.exports = {
   getTokenId,
   get,
   getAll,
+  getCount,
   create,
   update
 }
