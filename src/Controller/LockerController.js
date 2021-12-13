@@ -7,7 +7,7 @@ var ERC721ABI = require('../config/ABI/ERC721');
 
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.POLYGON_NODE));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_NODE));
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
@@ -22,12 +22,10 @@ const getNft = async (request, response) => {
       wallet
     } = request.params;
     
-    
     const drop1Data = await holderD1Model.find({wallet: wallet.toLowerCase()});
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
     const galaData = await getGalaData(wallet);
-    console.log(drop1Data, decentData, sandboxData)
     const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData];
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {
@@ -89,7 +87,7 @@ const getSandboxData = async (wallet) => {
 
 const getGalaData = async (wallet) => {
   try{
-    const options = { chain: 'eth', address: '0x381e840f4ebe33d0153e9a312105554594a98c42', token_address: '0xc36cf0cfcb5d905b8b513860db0cfe63f6cf9f5c', token_id: '154147912215185123948908697166590999789568' };
+    const options = { chain: 'eth', address: wallet, token_address: '0xc36cf0cfcb5d905b8b513860db0cfe63f6cf9f5c' };
     const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
     if(nfts.result) {
       const data = nfts.result.map(asset => {
