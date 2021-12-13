@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {getTokenId, get, getAll, create, update} = require('../Controller/PaymentInfoController');
+var {getTokenId, get, getAll, getCount, create, update} = require('../Controller/PaymentInfoController');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
 
@@ -8,6 +8,9 @@ router.post('/approve', async(request, response) => {
     getTokenId(request, response);
 });
 
+router.get('/getCount', async(request, response) => {
+    getCount(request, response);
+});
 router.get('/getAll', async(request, response) => {
     getAll(request, response);
 });
