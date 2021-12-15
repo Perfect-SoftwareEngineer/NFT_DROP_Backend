@@ -6,25 +6,26 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/2de4d25aeea745b181468b898cf4e899'));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_TEST_NODE));
 
 
 const getTokenId = async (request, response) => {
   const {id} = request.body;
-  const drop1Contract = new web3.eth.Contract(ERC1155ABI, "0x7C9A41EFd71b1942c222058DB93C5685bA1D97fB");
+  const drop1Contract = new web3.eth.Contract(ERC1155ABI, process.env.DROP1_ADDRESS);
   const tokenIds = [];
   for(let i = 1; i <= 5; i ++) {
     const balance = await drop1Contract.methods.balanceOf(process.env.ADMIN_WALLET, i).call();
     if(Number(balance) > 0)
       tokenIds.push(i);
   }
-  const tokenId = tokenIds[Math.floor(Math.random()*tokenIds.length)];
+  let tokenId = tokenIds[Math.floor(Math.random()*tokenIds.length)];
   paymentInfo = await paymentInfoModel.find({_id: id});
   if(paymentInfo.length > 0) {
     paymentInfo[0]['tokenId'] = tokenId;
     await paymentInfo[0].save();
   }
-  return response.status(HttpStatusCodes.OK).send(tokenId.toString());
+  tokenId = tokenId == undefined ? '0' : tokenId.toString();
+  return response.status(HttpStatusCodes.OK).send(tokenId);
 }
 
 const get = async (request, response) => {
@@ -46,7 +47,6 @@ const getAll = async (request, response) => {
 
 const getCount = async (request, response) => {
   const count = await paymentInfoModel.count();
-  console.log(count);
   return response.status(HttpStatusCodes.OK).send(JSON.stringify({'count': count}));
 }
 
@@ -83,7 +83,7 @@ const create = async (request, response) => {
         "wallet_address": wallet
       }
     };
-    sgMail.send(data);
+    // sgMail.send(data);
     return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);

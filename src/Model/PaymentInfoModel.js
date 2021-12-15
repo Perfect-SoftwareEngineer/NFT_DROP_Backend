@@ -13,6 +13,10 @@ let paymentInfoSchema = new mongoose.Schema({
         type : String,
         require : true,
     },
+    txHash: {
+        type : String,
+        require : true,
+    },
     status : {
         type : String,
         require : true,

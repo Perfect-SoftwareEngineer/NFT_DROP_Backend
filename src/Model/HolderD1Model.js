@@ -5,6 +5,14 @@ let holderSchema = new mongoose.Schema({
         type : String,
         require : true,
     },
+    platform: {
+        type: String,
+        require : true
+    },
+    contract : {
+        type: String,
+        require : true
+    },
     tokenId : {
         type: String,
         require : true

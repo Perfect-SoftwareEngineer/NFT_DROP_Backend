@@ -1,4 +1,5 @@
 const Web3 = require("web3");
+var {sendEmail} = require('./EmailServiceController');
 var {holderD1Model} = require('../Model/HolderD1Model')
 var {paymentInfoModel} = require('../Model/PaymentInfoModel')
 var ERC1155ABI = require('../config/ABI/ERC1155');
@@ -17,14 +18,16 @@ async function watchEtherTransfers() {
 			const from = "0x" + result.topics[2].toLowerCase().slice(26, 66);
 			const to = "0x" + result.topics[3].toLowerCase().slice(26,66);
 			const tokenId = web3.utils.toBN(result.data.toLowerCase().slice(0, 66)).toString();
-			handleTx(from, to, tokenId);
+			const txHash = result.transactionHash;
+			handleTx(from, to, tokenId, txHash);
 		}
 	})
 }
 
-async function handleTx(from, to, tokenId) {
+async function handleTx(from, to, tokenId, txHash) {
 	if(from == process.env.ADMIN_WALLET.toLowerCase()) {
-		updatePaymentInfo(to, tokenId);
+		console.log("admin")
+		updatePaymentInfo(to, tokenId, txHash);
 	}
 	if(web3.utils.toBN(from).toString() != 0) {
 		updateDB(from, tokenId);
@@ -43,6 +46,8 @@ async function updateDB(wallet, tokenId) {
 	if (holder.length == 0) {
 		const holderdata = new holderD1Model({
 			'wallet' : wallet,
+			'platform': 'Drop1Nft',
+			'contract': process.env.DROP1_ADDRESS,
 			tokenId,
 			uri,
 			'quantity': Number(balance)
@@ -64,11 +69,13 @@ async function updateDB(wallet, tokenId) {
 	}
 }
 
-async function updatePaymentInfo(to, tokenId) {
+async function updatePaymentInfo(to, tokenId, txHash) {
 	paymentInfo = await paymentInfoModel.find({wallet: to, tokenId: tokenId.toString(), status : "pending"});
 	if(paymentInfo.length > 0) {
 		paymentInfo[0]['status'] = "transferred";
+		paymentInfo[0]['txHash'] = txHash;
 		await paymentInfo[0].save();
+		sendEmail(paymentInfo[0]['wallet'], paymentInfo['tokenId'], paymentInfo['txHash']);
 	}
 }
 module.exports = {
