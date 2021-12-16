@@ -20,7 +20,7 @@ const decentTokenIds = [
   "210624583337114373395836055367340864637790190801098222508622013296"
 ]
 const sandboxTokenId = "55464657044963196816950587289035428064568320970692304673817341489687908321280";
-const galaTokenId = "38154640969901016166130090617297893851136";
+const galaTokenId = "138154640969901016166130090617297893851136";
 
 const getNft = async (request, response) => {
   try {
@@ -57,13 +57,15 @@ const getDecentralandData = async (wallet) => {
       quantity ++;
     }
   }
-  data.push({
-    wallet: wallet,
-    platfrom: "decentaland",
-    tokenId: tokenIds,
-    uri: uri,
-    quantity: Number(quantity)
-  })
+  if(quantity > 0) {
+    data.push({
+      wallet: wallet,
+      platform: "decentraland",
+      tokenId: tokenIds,
+      uri: uri,
+      quantity: Number(quantity)
+    })
+  }
   return data;
 }
 
@@ -89,7 +91,7 @@ const getSandboxData = async (wallet) => {
     const data = result.owner.assetTokens.map(asset => {
       return {
         wallet: wallet,
-        platfrom: "sandbox",
+        platform: "sandbox",
         tokenId: asset.token.id,
         uri: 'https://gateway.pinata.cloud/' + asset.token.collection.tokenURI.replace("://", "/"),
         quantity: asset.quantity
@@ -109,7 +111,7 @@ const getGalaData = async (wallet) => {
       const data = nfts.result.map(asset => {
         return {
           wallet: wallet,
-          platfrom: "gala",
+          platform: "gala",
           tokenId: asset.token_id,
           uri: asset.token_uri,
           quantity: asset.amount

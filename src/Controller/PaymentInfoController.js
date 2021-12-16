@@ -83,7 +83,7 @@ const create = async (request, response) => {
         "wallet_address": wallet
       }
     };
-    // sgMail.send(data);
+    sgMail.send(data);
     return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);

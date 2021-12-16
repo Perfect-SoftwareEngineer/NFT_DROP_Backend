@@ -4,14 +4,13 @@ require("dotenv").config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const contactEmail = 'contact@lunamarket.io';
 
-const sendEmail = (email, tokenId, txHash)=> {
+const sendEmail = (email, txHash)=> {
   let emailData = {
     to: email,
     from: contactEmail,
-    templateId: process.env.SENDGRID_ORDER_CONFIRMATION_TRANSACTION_ID,
+    templateId: process.env.SENDGRID_TRANSACTION_ID,
     subject: "Thank you for joining GetLost!",
     dynamic_template_data: {
-      "token_id": tokenId,
       "transaction_hash": "https://mumbai.polygonscan.com/tx/" + txHash
     }
   }

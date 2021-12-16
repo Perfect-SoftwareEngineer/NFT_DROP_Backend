@@ -26,14 +26,13 @@ async function watchEtherTransfers() {
 
 async function handleTx(from, to, tokenId, txHash) {
 	if(from == process.env.ADMIN_WALLET.toLowerCase()) {
-		console.log("admin")
 		updatePaymentInfo(to, tokenId, txHash);
 	}
 	if(web3.utils.toBN(from).toString() != 0) {
-		updateDB(from, tokenId);
+		await updateDB(from, tokenId);
 	}
 	if(web3.utils.toBN(to).toString() != 0) {
-		updateDB(to, tokenId);
+		await updateDB(to, tokenId);
 	}
 	
 }
