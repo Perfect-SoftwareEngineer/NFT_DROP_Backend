@@ -78,8 +78,8 @@ const create = async (request, response) => {
         "person_name": "",
         "time": date,
         "username": "",
-        "amount": "$297.40",
-        "sub_total_amount": "$297.40",
+        "amount": "$333.00",
+        "sub_total_amount": "$333.00",
         "wallet_address": wallet
       }
     };
