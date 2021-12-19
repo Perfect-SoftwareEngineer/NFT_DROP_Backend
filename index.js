@@ -55,5 +55,8 @@ app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
 
 // cron job
-// cronJob();
+if (process.env.NODE_ENV == 'production') {
+    cronJob();
+}
+
 watchEtherTransfers();

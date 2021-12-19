@@ -2,7 +2,7 @@ const { connect } = require('mongoose');
 
 const connectDB = async () => {
   try {
-    console.log('Database connecting ...');
+    console.log(`Database connecting to ${process.env.NODE_ENV} environment.`);
     const production = process.env.NODE_ENV === 'production';
     const options = {
       useNewUrlParser: true,

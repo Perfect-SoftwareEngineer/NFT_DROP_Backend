@@ -81,6 +81,11 @@ const runRoutine = () => {
   tpmFetcher(124, async (playerId, value) => {
       const document = await checkDBValue(playerId);
       
+      if (!document) {
+          await threesCurryModel.create({ playerId: 124, value });
+          return;
+      };
+      
       if (document.value !== value) {
           await storeTotalThreesInDB(playerId, value);
           await createTweet(`Steph Curry 3-point count: ${value}`);
