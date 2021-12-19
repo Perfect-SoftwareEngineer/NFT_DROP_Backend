@@ -38,7 +38,7 @@ app.use(fileupload());
 // Default
 app.get('/', (req, res)=> {
     res.json({
-        message: "Welcome to Luna Staging"
+        message: `Welcome to Luna Server — ${process.env.NODE_ENV}`
     })
 });
 
