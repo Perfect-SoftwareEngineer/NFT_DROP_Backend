@@ -38,6 +38,7 @@ const create = async (request, response) => {
       externalUrl,
       animationUrl,
       tokenId,
+      feeRecipient
     } = request.body;
 
     const metadata = new metadataModel({
@@ -46,7 +47,8 @@ const create = async (request, response) => {
       image,
       external_url: externalUrl,
       animation_url: animationUrl,
-      tokenId
+      tokenId: tokenId,
+      fee_recipient: feeRecipient
     });
     console.log(metadata)
     await metadata.save();

@@ -24,6 +24,10 @@ let metadataSchema = new mongoose.Schema({
     tokenId : {
         type: String,
         require : true
+    },
+    fee_recipient : {
+        type: String,
+        require : true
     }
   },{
       timestamps : true,
