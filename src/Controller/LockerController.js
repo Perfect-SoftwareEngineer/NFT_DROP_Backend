@@ -7,7 +7,8 @@ var ERC721ABI = require('../config/ABI/ERC721');
 
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_NODE));
+const polygonNode = process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE;
+const web3 = new Web3(new Web3.providers.HttpProvider(polygonNode));
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 

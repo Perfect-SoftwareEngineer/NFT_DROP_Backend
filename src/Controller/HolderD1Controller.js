@@ -6,7 +6,8 @@ var ERC1155ABI = require('../config/ABI/ERC1155');
 
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.POLYGON_TEST_NODE));
+const polygonNode = process.env.NODE_ENV == 'production' ? process.env.POLYGON_NODE : process.env.POLYGON_TEST_NODE;
+const web3 = new Web3(new Web3.providers.WebsocketProvider(polygonNode));
 
 async function watchEtherTransfers() {
 	const topic = web3.utils.keccak256('TransferSingle(address,address,address,uint256,uint256)');
