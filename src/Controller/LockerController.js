@@ -12,9 +12,8 @@ const web3 = new Web3(new Web3.providers.HttpProvider(polygonNode));
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
-const serverUrl = process.env.MORALIS_SERVER_URL;
-const appId = process.env.MORALIS_APP_ID;
-Moralis.start({ serverUrl, appId });
+Moralis.initialize(process.env.MORALIS_APP_ID);
+Moralis.serverURL = process.env.MORALIS_SERVER_URL;
 
 const decentTokenIds = [
   "210624583337114373395836055367340864637790190801098222508622021957",
