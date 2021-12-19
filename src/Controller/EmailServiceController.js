@@ -9,7 +9,6 @@ const sendEmail = (email, txHash)=> {
     to: email,
     from: contactEmail,
     templateId: process.env.SENDGRID_TRANSACTION_ID,
-    subject: "Thank you for joining GetLost!",
     dynamic_template_data: {
       "transaction_hash": "https://mumbai.polygonscan.com/tx/" + txHash
     }
