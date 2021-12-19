@@ -10,9 +10,9 @@ const connectDB = async () => {
       useFindAndModify: false,
       useUnifiedTopology: true,
     };
-
+    
     await connect(
-      production ? process.env.MONGODB_URI : `mongodb://localhost/under_armour`,
+      production ? process.env.MONGODB_PROD_URI : process.env.MONGODB_DEV_URI,
       options,
     );
     console.log('MongoDB connected!');
