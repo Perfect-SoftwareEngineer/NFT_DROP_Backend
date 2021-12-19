@@ -35,6 +35,13 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(fileupload());
 
+// Default
+app.get('/', (req, res)=> {
+    res.json({
+        message: "Welcome to Luna Staging"
+    })
+});
+
 
 //connect Router
 app.use('/api/metadata/drop1', RouterMetadataD1);
