@@ -99,14 +99,21 @@ const create = async (request, response) => {
   }
 }
 
+function sleep(milliseconds) {  
+  return new Promise(resolve => setTimeout(resolve, milliseconds));  
+}  
+
 const update = async (request, response) => {
   try {
     const {
       txHash
     } = request.body;
+    await sleep(3000);
     const topic = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
     const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
     const options = { chain: chain, transaction_hash : txHash};
+    
+    console.log({ options, chain, txHash });
     const transaction = await Moralis.Web3API.native.getTransaction(options);
     console.log({ transaction });
     
