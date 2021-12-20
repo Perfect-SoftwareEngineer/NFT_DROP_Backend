@@ -12,7 +12,7 @@ const web3 = new Web3(new Web3.providers.WebsocketProvider(polygonNode));
 async function watchEtherTransfers() {
 	const topic = web3.utils.keccak256('TransferSingle(address,address,address,uint256,uint256)');
 	web3.eth.subscribe('logs', {
-		address: process.env.DROP1_ADDRESS,
+		address: process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST,
 	}, function(error, result){
 		if(error){ console.log(error) }
 		if (!error && result.topics[0].toLowerCase() == topic) {
@@ -39,7 +39,8 @@ async function handleTx(from, to, tokenId, txHash) {
 }
 
 async function updateDB(wallet, tokenId) {
-	const drop1Contract = new web3.eth.Contract(ERC1155ABI, process.env.DROP1_ADDRESS);
+    const drop1ContractAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
+	const drop1Contract = new web3.eth.Contract(ERC1155ABI, drop1ContractAddress);
 	const balance = await drop1Contract.methods.balanceOf(wallet, Number(tokenId)).call();
 	const uri = await drop1Contract.methods.uri(Number(tokenId)).call();
 	let holder = await holderD1Model.find({wallet: wallet, tokenId: tokenId});
@@ -47,7 +48,7 @@ async function updateDB(wallet, tokenId) {
 		const holderdata = new holderD1Model({
 			'wallet' : wallet,
 			'platform': 'Drop1Nft',
-			'contract': process.env.DROP1_ADDRESS,
+			'contract': drop1ContractAddress,
 			tokenId,
 			uri,
 			'quantity': Number(balance)
