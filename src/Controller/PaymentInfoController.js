@@ -116,13 +116,11 @@ const update = async (request, response) => {
 			const to = "0x" + transaction.logs[0].topics[3].toLowerCase().slice(26,66);
 			const tokenId = web3.utils.toBN(transaction.logs[0].data.toLowerCase().slice(0, 66)).toString();
 			paymentInfo = await paymentInfoModel.find({wallet: to, tokenId: tokenId.toString(), status : "pending"});
-            console.log({ paymentInfo });
       if(paymentInfo.length > 0) {
         paymentInfo[0]['status'] = "transferred";
         paymentInfo[0]['txHash'] = txHash;
         await paymentInfo[0].save();
         
-        console.log({ message: "Before email" });
         sendEmail(paymentInfo[0]['email'], paymentInfo[0]['txHash']);
       }
       return response.status(HttpStatusCodes.OK).send("ok");
