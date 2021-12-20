@@ -8,12 +8,15 @@ var ERC721ABI = require('../config/ABI/ERC721');
 require("dotenv").config();
 
 const polygonNode = process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE;
-const web3 = new Web3(new Web3.providers.HttpProvider(polygonNode));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_NODE));
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
-Moralis.initialize(process.env.MORALIS_APP_ID);
-Moralis.serverURL = process.env.MORALIS_SERVER_URL;
+const serverUrl = process.env.MORALIS_SERVER_URL;
+const appId = process.env.MORALIS_APP_ID;
+
+Moralis.start({ serverUrl, appId });
+const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
 
 const decentTokenIds = [
   "210624583337114373395836055367340864637790190801098222508622021957",
@@ -28,7 +31,7 @@ const getNft = async (request, response) => {
     const {
       wallet
     } = request.params;
-    const drop1Data = await holderD1Model.find({wallet: wallet.toLowerCase(), contract: process.env.DROP1_ADDRESS});
+    const drop1Data = await getDropData(wallet);
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
     const galaData = await getGalaData(wallet);
@@ -39,34 +42,62 @@ const getNft = async (request, response) => {
   }
 }
 
-const getDecentralandData = async (wallet) => {
-  const nftContract = new web3.eth.Contract(ERC721ABI, '0x66194b1abcbfbedd83841775404b245c8f9e4183');
-
-  const balance = await nftContract.methods.balanceOf(wallet).call();
-  const data = [];
-  const tokenIds = [];
-  let uri = "";
-  let quantity = 0;
-  for (let i = 0; i < balance; i++) {
-    let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
-    
-    if( decentTokenIds.includes(tokenId.toString()) ) {
-      if(uri == "")
-        uri = await nftContract.methods.tokenURI(tokenId).call();
-      tokenIds.push(tokenId);
-      quantity ++;
+const getDropData = async (wallet) => {
+  try{
+    const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
+    const options = { chain: chain, address: wallet, token_address: tokenAddress};
+    const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
+    if(nfts.result) {
+      const data = nfts.result.map(asset => {
+        return {
+          wallet: wallet,
+          platform: "Drop1Nft",
+          tokenId: asset.token_id,
+          uri: asset.token_uri,
+          quantity: asset.amount
+        }
+      })
+      return data;
     }
+    return [];
+  } catch(err) {
+    console.log(err)
+    return [];
   }
-  if(quantity > 0) {
-    data.push({
-      wallet: wallet,
-      platform: "decentraland",
-      tokenId: tokenIds,
-      uri: uri,
-      quantity: Number(quantity)
-    })
+}
+
+const getDecentralandData = async (wallet) => {
+  try{
+    const nftContract = new web3.eth.Contract(ERC721ABI, '0x66194b1abcbfbedd83841775404b245c8f9e4183');
+    
+    const balance = await nftContract.methods.balanceOf(wallet).call();
+    const data = [];
+    const tokenIds = [];
+    let uri = "";
+    let quantity = 0;
+    for (let i = 0; i < balance; i++) {
+      let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
+      
+      if( decentTokenIds.includes(tokenId.toString()) ) {
+        if(uri == "")
+          uri = await nftContract.methods.tokenURI(tokenId).call();
+        tokenIds.push(tokenId);
+        quantity ++;
+      }
+    }
+    if(quantity > 0) {
+      data.push({
+        wallet: wallet,
+        platform: "decentraland",
+        tokenId: tokenIds,
+        uri: uri,
+        quantity: Number(quantity)
+      })
+    }
+    return data;
+  } catch {
+    return [];
   }
-  return data;
 }
 
 const getSandboxData = async (wallet) => {

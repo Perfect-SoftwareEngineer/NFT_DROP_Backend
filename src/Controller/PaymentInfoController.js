@@ -1,12 +1,18 @@
 const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
+const Moralis  = require('moralis/node');
 var ERC1155ABI = require('../config/ABI/ERC1155');
 var {paymentInfoModel} = require('../Model/PaymentInfoModel')
+var {sendEmail} = require('./EmailServiceController');
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 require("dotenv").config();
 
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE));
+const serverUrl = process.env.MORALIS_SERVER_URL;
+const appId = process.env.MORALIS_APP_ID;
+
+Moralis.start({ serverUrl, appId });
 
 const getTokenId = async (request, response) => {
   const {id} = request.body;
@@ -58,32 +64,36 @@ const create = async (request, response) => {
       country_name,
       date
     } = request.body;
-
-    const paymentInfo = new paymentInfoModel({
-      email,
-      wallet: wallet.toLowerCase(),
-      status : "pending",
-      ip,
-      country_name,
-      date
-    });
-    await paymentInfo.save();
-
-    const data= {
-      to: email,
-      from: 'contact@lunamarket.io',
-      templateId: process.env.SENDGRID_ORDER_CONFIRMATION_TRANSACTION_ID,
-      dynamic_template_data: {
-        "person_name": "",
-        "time": date,
-        "username": "",
-        "amount": "$333.00",
-        "sub_total_amount": "$333.00",
-        "wallet_address": wallet
-      }
-    };
-    sgMail.send(data);
-    return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
+    if(request.email == email) {
+      const paymentInfo = new paymentInfoModel({
+        email,
+        wallet: wallet.toLowerCase(),
+        status : "pending",
+        ip,
+        country_name,
+        date
+      });
+      await paymentInfo.save();
+  
+      const data= {
+        to: email,
+        from: 'contact@lunamarket.io',
+        templateId: process.env.SENDGRID_ORDER_CONFIRMATION_TRANSACTION_ID,
+        dynamic_template_data: {
+          "person_name": "",
+          "time": date,
+          "username": "",
+          "amount": "$333.00",
+          "sub_total_amount": "$333.00",
+          "wallet_address": wallet
+        }
+      };
+      sgMail.send(data);
+      return response.status(HttpStatusCodes.OK).send(paymentInfo._id);
+    }
+    else {
+      return response.status(HttpStatusCodes.BAD_REQUEST).send("auth token incorrect");  
+    }
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -92,34 +102,27 @@ const create = async (request, response) => {
 const update = async (request, response) => {
   try {
     const {
-      _id,
-      email,
-      wallet,
-      tokenId,
-      status,
-      ip,
-      country_name,
-      date
+      txHash
     } = request.body;
-
-    let paymentInfo = await paymentInfoModel.find({_id: _id});
-    if (!paymentInfo) {
-      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
-    }
-
-    paymentInfo[0].email = email;
-    paymentInfo[0].wallet = wallet;
-    paymentInfo[0].tokenId = tokenId;
-    paymentInfo[0].status = status;
-    paymentInfo[0].ip = ip;
-    paymentInfo[0].country_name = country_name;
-    paymentInfo[0].date = date;
-
-    await paymentInfo[0].save();
-    
-    return response.status(HttpStatusCodes.OK).send(paymentInfo[0]._id);
+    const topic = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
+    const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
+    const options = { chain: chain, transaction_hash : txHash};
+    const transaction = await Moralis.Web3API.native.getTransaction(options);
+    if (transaction.logs[0].topic0.toLowerCase() == topic) {
+			const from = "0x" + transaction.logs[0].topic2.toLowerCase().slice(26, 66);
+			const to = "0x" + transaction.logs[0].topic3.toLowerCase().slice(26,66);
+			const tokenId = web3.utils.toBN(transaction.logs[0].data.toLowerCase().slice(0, 66)).toString();
+			paymentInfo = await paymentInfoModel.find({wallet: to, tokenId: tokenId.toString(), status : "pending"});
+      if(paymentInfo.length > 0) {
+        paymentInfo[0]['status'] = "transferred";
+        paymentInfo[0]['txHash'] = txHash;
+        await paymentInfo[0].save();
+        sendEmail(paymentInfo[0]['email'], paymentInfo[0]['txHash']);
+      }
+      return response.status(HttpStatusCodes.OK).send("ok");
+		}
   } catch(err) {
-    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 

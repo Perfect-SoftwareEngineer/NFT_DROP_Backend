@@ -59,4 +59,4 @@ if (process.env.NODE_ENV == 'production') {
     cronJob();
 }
 
-watchEtherTransfers();
+// watchEtherTransfers();

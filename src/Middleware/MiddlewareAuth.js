@@ -13,7 +13,7 @@ module.exports =function MiddlewareAuth(request, response, next) {
   // Verify token
   try {
     const user = jwt.verify(token, process.env.jwtSecret);
-    request.wallet = user.wallet;
+    request.email = user.email;
     next();
   } catch (error) {
     response.status(HttpStatusCodes.UNAUTHORIZED).send('Invalid Token');

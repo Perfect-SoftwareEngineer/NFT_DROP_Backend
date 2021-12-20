@@ -2,12 +2,22 @@
 const express = require("express");
 const router = express.Router();
 const stripe = require('../constants/stripe');
+var jwt = require('jsonwebtoken');
+
+
+require("dotenv").config();
 
 const postStripeCharge = res => (stripeErr, stripeRes) => {
   if (stripeErr) {
     res.status(500).send({ error: stripeErr });
   } else {
-    res.status(200).send({ success: stripeRes });
+    const email = stripeRes.billing_details.name;
+    const token = jwt.sign(
+      { email: email },
+      process.env.jwtSecret,
+      { expiresIn: process.env.jwtExpiration }
+    );
+    res.status(200).send({ token: token });
   }
 }
   
