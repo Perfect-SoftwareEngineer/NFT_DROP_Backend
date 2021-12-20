@@ -1,6 +1,6 @@
 branch-defaults:
   master:
-    environment: Luna-Backend-Production
+    environment: Luna-Backend-Staging
     group_suffix: null
 global:
   application_name: Luna-Backend
