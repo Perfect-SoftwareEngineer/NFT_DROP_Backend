@@ -99,18 +99,21 @@ const create = async (request, response) => {
   }
 }
 
+function sleep(milliseconds) {  
+  return new Promise(resolve => setTimeout(resolve, milliseconds));  
+}  
+
 const update = async (request, response) => {
   try {
     const {
       txHash
     } = request.body;
+    await sleep(3000); 
     const topic = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62";
-    const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
-    const options = { chain: chain, transaction_hash : txHash};
-    const transaction = await Moralis.Web3API.native.getTransaction(options);
-    if (transaction.logs[0].topic0.toLowerCase() == topic) {
-			const from = "0x" + transaction.logs[0].topic2.toLowerCase().slice(26, 66);
-			const to = "0x" + transaction.logs[0].topic3.toLowerCase().slice(26,66);
+    const transaction = await web3.eth.getTransactionReceipt(txHash);
+    if (transaction.logs[0].topics[0].toLowerCase() == topic) {
+			const from = "0x" + transaction.logs[0].topics[2].toLowerCase().slice(26, 66);
+			const to = "0x" + transaction.logs[0].topics[3].toLowerCase().slice(26,66);
 			const tokenId = web3.utils.toBN(transaction.logs[0].data.toLowerCase().slice(0, 66)).toString();
 			paymentInfo = await paymentInfoModel.find({wallet: to, tokenId: tokenId.toString(), status : "pending"});
       if(paymentInfo.length > 0) {
