@@ -8,10 +8,9 @@ require("dotenv").config();
 
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_TEST_NODE));
 
-
 const getTokenId = async (request, response) => {
   const {id} = request.body;
-  const drop1Contract = new web3.eth.Contract(ERC1155ABI, process.env.DROP1_ADDRESS);
+  const drop1Contract = new web3.eth.Contract(ERC1155ABI, process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST);
   const tokenIds = [];
   for(let i = 1; i <= 5; i ++) {
     const balance = await drop1Contract.methods.balanceOf(process.env.ADMIN_WALLET, i).call();
