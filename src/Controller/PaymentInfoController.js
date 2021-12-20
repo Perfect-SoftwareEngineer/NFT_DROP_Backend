@@ -6,7 +6,7 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_TEST_NODE));
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE));
 
 const getTokenId = async (request, response) => {
   const {id} = request.body;
