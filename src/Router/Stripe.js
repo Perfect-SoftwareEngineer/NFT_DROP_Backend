@@ -12,12 +12,13 @@ const postStripeCharge = res => (stripeErr, stripeRes) => {
     res.status(500).send({ error: stripeErr });
   } else {
     const email = stripeRes.billing_details.name;
+    const id = stripeRes.id;
     const token = jwt.sign(
       { email: email },
       process.env.jwtSecret,
       { expiresIn: process.env.jwtExpiration }
     );
-    res.status(200).send({ token: token });
+    res.status(200).send({ token: token, id });
   }
 }
   
@@ -28,5 +29,14 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   stripe.charges.create(req.body, postStripeCharge(res));
 });
+
+router.post('/refund/:id', async (req, res) => {
+    const { id } = req.params;
+    const refund = await stripe.refunds.create({
+      charge: id,
+    });
+    
+    res.status(200).json({ success: true, refund });
+})
 
 module.exports = router;
