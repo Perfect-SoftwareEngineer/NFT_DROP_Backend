@@ -68,90 +68,103 @@ const getDropData = async (wallet) => {
 
 const getDecentralandData = async (wallet) => {
   try{
-    const nftContract = new web3.eth.Contract(ERC721ABI, '0x66194b1abcbfbedd83841775404b245c8f9e4183');
-    
-    const balance = await nftContract.methods.balanceOf(wallet).call();
-    const data = [];
-    const tokenIds = [];
-    let uri = "";
-    let quantity = 0;
-    for (let i = 0; i < balance; i++) {
-      let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
+    if(process.env.NODE_ENV != 'production') {
+      const nftContract = new web3.eth.Contract(ERC721ABI, '0x66194b1abcbfbedd83841775404b245c8f9e4183');
       
-      if( decentTokenIds.includes(tokenId.toString()) ) {
-        if(uri == "")
-          uri = await nftContract.methods.tokenURI(tokenId).call();
-        tokenIds.push(tokenId);
-        quantity ++;
+      const balance = await nftContract.methods.balanceOf(wallet).call();
+      const data = [];
+      const tokenIds = [];
+      let uri = "";
+      let quantity = 0;
+      for (let i = 0; i < balance; i++) {
+        let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
+        
+        if( decentTokenIds.includes(tokenId.toString()) ) {
+          if(uri == "")
+            uri = await nftContract.methods.tokenURI(tokenId).call();
+          tokenIds.push(tokenId);
+          quantity ++;
+        }
       }
+      if(quantity > 0) {
+        data.push({
+          wallet: wallet,
+          platform: "decentraland",
+          tokenId: tokenIds,
+          uri: uri,
+          quantity: Number(quantity)
+        })
+      }
+      return data;
+    } else {
+      return [];
     }
-    if(quantity > 0) {
-      data.push({
-        wallet: wallet,
-        platform: "decentraland",
-        tokenId: tokenIds,
-        uri: uri,
-        quantity: Number(quantity)
-      })
-    }
-    return data;
   } catch {
     return [];
   }
 }
 
 const getSandboxData = async (wallet) => {
-  tokensQuery = `
-    query($account: String, $tokenId: String) {
-      owner(id : $account) {
-        assetTokens(where: {token: $tokenId}){
-          token{
-            id
-            collection{
-              tokenURI
+  if(process.env.NODE_ENV != 'production') {
+    tokensQuery = `
+      query($account: String, $tokenId: String) {
+        owner(id : $account) {
+          assetTokens(where: {token: $tokenId}){
+            token{
+              id
+              collection{
+                tokenURI
+              }
             }
+            quantity
           }
-          quantity
         }
       }
+    `
+    const variables = { account : wallet.toLowerCase(), tokenId : sandboxTokenId};
+    const result = await gql.request(subgraphAPIURL, tokensQuery, variables)
+    if(result.owner) {
+      const data = result.owner.assetTokens.map(asset => {
+        return {
+          wallet: wallet,
+          platform: "sandbox",
+          tokenId: asset.token.id,
+          uri: 'https://gateway.pinata.cloud/' + asset.token.collection.tokenURI.replace("://", "/"),
+          quantity: asset.quantity
+        }
+      })
+      return data;
+    } else {
+      return [];
     }
-  `
-  const variables = { account : wallet.toLowerCase(), tokenId : sandboxTokenId};
-  const result = await gql.request(subgraphAPIURL, tokensQuery, variables)
-  if(result.owner) {
-    const data = result.owner.assetTokens.map(asset => {
-      return {
-        wallet: wallet,
-        platform: "sandbox",
-        tokenId: asset.token.id,
-        uri: 'https://gateway.pinata.cloud/' + asset.token.collection.tokenURI.replace("://", "/"),
-        quantity: asset.quantity
-      }
-    })
-    return data;
   } else {
     return [];
   }
 }
 
 const getGalaData = async (wallet) => {
-  try{
-    const options = { chain: 'eth', address: wallet, token_address: '0xc36cf0cfcb5d905b8b513860db0cfe63f6cf9f5c', token_id: galaTokenId };
-    const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
-    if(nfts.result) {
-      const data = nfts.result.map(asset => {
-        return {
-          wallet: wallet,
-          platform: "gala",
-          tokenId: asset.token_id,
-          uri: asset.token_uri,
-          quantity: asset.amount
-        }
-      })
-      return data;
+  if(process.env.NODE_ENV != 'production') {
+    try{
+      const options = { chain: 'eth', address: wallet, token_address: '0xc36cf0cfcb5d905b8b513860db0cfe63f6cf9f5c', token_id: galaTokenId };
+      const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
+      if(nfts.result) {
+        const data = nfts.result.map(asset => {
+          return {
+            wallet: wallet,
+            platform: "gala",
+            tokenId: asset.token_id,
+            uri: asset.token_uri,
+            quantity: asset.amount
+          }
+        })
+        return data;
+      }
+      return [];
+    } catch(err) {
+      return [];
     }
-    return [];
-  } catch(err) {
+  }
+  else {
     return [];
   }
 }
