@@ -1,7 +1,8 @@
 var HttpStatusCodes = require('http-status-codes');
 const gql = require('graphql-request');
-const Moralis  = require('moralis/node');
+
 const Web3 = require("web3");
+const {Moralis}  = require('./MoralisController');
 var {holderD1Model} = require('../Model/HolderD1Model')
 var ERC721ABI = require('../config/ABI/ERC721');
 
@@ -12,10 +13,10 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_N
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
-const serverUrl = process.env.MORALIS_SERVER_URL;
-const appId = process.env.MORALIS_APP_ID;
+// const serverUrl = process.env.MORALIS_SERVER_URL;
+// const appId = process.env.MORALIS_APP_ID;
 
-Moralis.start({ serverUrl, appId });
+// Moralis.start({ serverUrl, appId });
 const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
 
 const decentTokenIds = [
