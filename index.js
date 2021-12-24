@@ -17,6 +17,7 @@ var RouterLocker = require('./src/Router/Locker');
 var RouterSubscribeEmail = require('./src/Router/SubscribeEmail');
 const RouterStripe = require('./src/Router/Stripe');
 const RouterPaymentInfo = require('./src/Router/PaymentInfo');
+const RouterSnapShot = require('./src/Router/SnapShot');
 
 const cronJob = require('./src/cronJob');
 const {watchEtherTransfers} = require('./src/Controller/HolderD1Controller');
@@ -53,7 +54,7 @@ app.use('/api/locker', RouterLocker);
 app.use('/api/subscribe/email', RouterSubscribeEmail);
 app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
-
+app.use('/api/snapshot', RouterSnapShot);
 // cron job
 if (process.env.NODE_ENV == 'production') {
     cronJob();

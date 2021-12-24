@@ -1,18 +1,17 @@
 const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
-const Moralis  = require('moralis/node');
-var ERC1155ABI = require('../config/ABI/ERC1155');
+const sgMail = require("@sendgrid/mail");
+const {Moralis}  = require('./MoralisController');
 var {paymentInfoModel} = require('../Model/PaymentInfoModel')
 var {sendEmail} = require('./EmailServiceController');
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+var ERC1155ABI = require('../config/ABI/ERC1155');
+
 require("dotenv").config();
 
-const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE));
-const serverUrl = process.env.MORALIS_SERVER_URL;
-const appId = process.env.MORALIS_APP_ID;
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-Moralis.start({ serverUrl, appId });
+
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NODE_ENV == 'production' ? process.env.POLYGON_HTTP_NODE : process.env.POLYGON_HTTP_TEST_NODE));
 
 const getTokenId = async (request, response) => {
   const {id} = request.body;
