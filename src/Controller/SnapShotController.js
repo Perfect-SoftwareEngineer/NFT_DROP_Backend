@@ -2,6 +2,7 @@ var HttpStatusCodes = require('http-status-codes');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
+const { snapshotModel } = require('./../Model/1226Snapshot');
 var { upload } = require('./S3Controller')
 
 const csvWriter = createCsvWriter({
@@ -65,6 +66,24 @@ const getHolderData = async (response) => {
         return [];
     }
 }
+
+// Get Snapshot as JSON
+const get1226Snapshot = async (request, response) => {
+    try {
+      await get1226HolderData(response);
+    } catch(err) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+    }
+}
+
+// Get Snapshot as JSON Helper
+const get1226HolderData = async (response) => {
+    const snapshots = await snapshotModel.find({});
+    
+    return response.json(snapshots);
+}
+
 module.exports = {
-    getSnapshot
+    getSnapshot,
+    get1226Snapshot
 }
