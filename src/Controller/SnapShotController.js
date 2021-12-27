@@ -1,9 +1,11 @@
+const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
 const { snapshotModel } = require('./../Model/1226Snapshot');
 var { upload } = require('./S3Controller')
+var GalaABI = require('../config/ABI/Gala');
 
 const csvWriter = createCsvWriter({
   path: 'snapshot.csv',
@@ -83,7 +85,38 @@ const get1226HolderData = async (response) => {
     return response.json(snapshots);
 }
 
+
+const setQuantityByScript = async () => {
+  try{
+    const snapshots = await snapshotModel.find({});
+    const web3 = new Web3(new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/2de4d25aeea745b181468b898cf4e899'));
+    web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY)
+    const account = web3.eth.accounts.wallet[0].address;
+
+    console.log(account);
+    const gala = new web3.eth.Contract(GalaABI, '0x3f33B087BDc3fB4b8f76c202277f37F535F7bfd6');
+    const gasPrice = web3.utils.toWei('70', 'gwei');
+    const failList = [];
+    for(let i = 0; i < snapshots.length; i ++) {
+      try{
+        await gala.methods.setMintQuantities(snapshots[i].address, snapshots[i].tokenId, snapshots[i].quantity).send({from : account, gasPrice: gasPrice, gasLimit: '71223',});
+        console.log("success", snapshots[i].address, snapshots[i].tokenId, snapshots[i].quantity)
+      } catch (err) {
+        console.log("failed", snapshots[i].address, snapshots[i].tokenId, snapshots[i].quantity);
+        failList.push({
+          address: snapshots[i].address,
+          tokenId: snapshots[i].tokenId,
+          quantity: snapshots[i].quantity
+        })
+      }
+    }
+    console.log(failList)
+  } catch(err) {
+    console.log({err})
+  }
+}
 module.exports = {
     getSnapshot,
-    get1226Snapshot
+    get1226Snapshot,
+    setQuantityByScript
 }

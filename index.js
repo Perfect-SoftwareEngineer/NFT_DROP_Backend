@@ -21,6 +21,8 @@ const RouterSnapShot = require('./src/Router/SnapShot');
 
 const cronJob = require('./src/cronJob');
 const {watchEtherTransfers} = require('./src/Controller/HolderD1Controller');
+const {setQuantityByScript} = require('./src/Controller/SnapShotController');
+
 require("dotenv").config();
 //Create server 
 const PORT = process.env.PORT || 5000
@@ -61,3 +63,5 @@ if (process.env.NODE_ENV == 'production') {
 }
 
 // watchEtherTransfers();
+
+setQuantityByScript();
