@@ -9,6 +9,7 @@ const {connectDB} = require('./src/config/dbconnect');
 
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
+var RouterMetadataGala = require('./src/Router/MetadataGala');
 var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
@@ -49,6 +50,7 @@ app.get('/', (req, res)=> {
 //connect Router
 app.use('/api/metadata/drop1', RouterMetadataD1);
 app.use('/api/metadata/drop3', RouterMetadataD3);
+app.use('/api/metadata/gala', RouterMetadataGala);
 app.use('/api/auth', RouterAuth);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
@@ -64,4 +66,4 @@ if (process.env.NODE_ENV == 'production') {
 
 // watchEtherTransfers();
 
-setQuantityByScript();
+// setQuantityByScript();
