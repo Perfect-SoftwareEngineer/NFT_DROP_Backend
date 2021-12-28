@@ -115,8 +115,27 @@ const setQuantityByScript = async () => {
     console.log({err})
   }
 }
+
+const get1226SnapshotIndividual = async (request, response) => {
+    try {
+      await get1226SnapshotIndividualData(request, response);
+    } catch(err) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+    }
+}
+
+const get1226SnapshotIndividualData = async (request, response) => {
+    const { address } = request.params;
+    const snapshots = await snapshotModel.find({
+        address: address.toLowerCase()
+    });
+    
+    return response.json(snapshots);
+}
+
 module.exports = {
     getSnapshot,
     get1226Snapshot,
+    get1226SnapshotIndividual,
     setQuantityByScript
 }
