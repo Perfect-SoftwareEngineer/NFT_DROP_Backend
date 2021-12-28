@@ -13,6 +13,9 @@ let snapshotSchema = new mongoose.Schema({
         type: Number,
         require : true
     },
+    claimed: {
+        type: Boolean,
+    }
   },{
       timestamps : true,
   });

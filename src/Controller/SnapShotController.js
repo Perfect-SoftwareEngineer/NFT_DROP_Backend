@@ -18,6 +18,24 @@ const csvWriter = createCsvWriter({
 
 require("dotenv").config();
 
+const updateSnapshotClaim = async (request, response) => {
+    try {
+      const {
+        address,
+      } = request.body;
+
+      let metadata = await snapshotModel.find({ address });
+      if (!address) {
+        return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+      }
+      await snapshotModel.updateMany({ address: address.toLowerCase() }, { claimed: true });
+    
+      return response.status(HttpStatusCodes.OK).json({ success: true });
+    } catch(err) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+    }
+}
+
 const getSnapshot = async (request, response) => {
   try {
     await getHolderData(response);
@@ -137,5 +155,6 @@ module.exports = {
     getSnapshot,
     get1226Snapshot,
     get1226SnapshotIndividual,
-    setQuantityByScript
+    setQuantityByScript,
+    updateSnapshotClaim
 }
