@@ -13,11 +13,9 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.POLYGON_HTTP_N
 
 const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandbox'
 
-// const serverUrl = process.env.MORALIS_SERVER_URL;
-// const appId = process.env.MORALIS_APP_ID;
 
-// Moralis.start({ serverUrl, appId });
 const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
+const galaTokenAddress = process.env.NODE_ENV == 'production' ? process.env.GALA_ADDRESS : process.env.GALA_ADDRESS_TEST;
 
 const decentTokenIds = [
   "210624583337114373395836055367340864637790190801098222508622021957",
@@ -36,6 +34,7 @@ const getNft = async (request, response) => {
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
     const galaData = await getGalaData(wallet);
+    // const galaData = [];
     const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData];
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {
@@ -144,28 +143,32 @@ const getSandboxData = async (wallet) => {
 }
 
 const getGalaData = async (wallet) => {
-  if(process.env.NODE_ENV != 'production') {
-    try{
-      const options = { chain: 'eth', address: wallet, token_address: '0xc36cf0cfcb5d905b8b513860db0cfe63f6cf9f5c', token_id: galaTokenId };
-      const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
-      if(nfts.result) {
-        const data = nfts.result.map(asset => {
-          return {
-            wallet: wallet,
-            platform: "gala",
-            tokenId: asset.token_id,
-            uri: asset.token_uri,
-            quantity: asset.amount
-          }
-        })
-        return data;
+  try{
+    const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
+    const options = { chain: chain, address: wallet, token_address: galaTokenAddress};
+    const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
+    let quantity = 0;
+    let uri ;
+    if(nfts.result.length > 0) {
+      
+      nfts.result.map(asset => {
+        quantity += Number(asset.amount);
+        uri = asset.token_uri;
+        
+      })
+      if(quantity > 0) {
+        return [{
+          wallet: wallet,
+          platform: "gala",
+          tokenId: [],
+          uri: uri,
+          quantity: quantity
+        }]
       }
-      return [];
-    } catch(err) {
-      return [];
     }
-  }
-  else {
+    return [];
+  } catch(err) {
+    console.log(err)
     return [];
   }
 }
