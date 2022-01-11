@@ -4,7 +4,7 @@ const path = require('path');
 const { connect } = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config({ path: './../.env'});
-const { snapshotModel } = require('../src/Model/1226Snapshot');
+const { rklSnapshotModel } = require('../src/Model/RKLSnapshot');
 
 const connectDB = async () => {
   try {
@@ -29,10 +29,10 @@ const connectDB = async () => {
 };
 
 const getSnapshots = ()=> {
-    const data = fs.readFileSync(path.join(__dirname, 'input/12_26_8pm_snapshot.csv'), { encoding: 'utf8' });
+    const data = fs.readFileSync(path.join(__dirname, 'input/rkl-full-snap-final.csv'), { encoding: 'utf8' });
     const options = {
         delimiter: ',', // optional
-        headers: 'address,tokenId,quantity'
+        headers: 'address,quantity'
     };
 
     const snapshots = csvjson.toObject(data, options);
@@ -43,11 +43,10 @@ const getSnapshots = ()=> {
 
 const formatSnapshot = (snapshot)=> {
     let newObj = {};
-    let { address, tokenId, quantity } = snapshot;
+    let { address, quantity } = snapshot;
     
     return {
         address: address.toLowerCase(),
-        tokenId: parseInt(tokenId),
         quantity: parseInt(quantity)
     }
 }
@@ -60,14 +59,14 @@ const main = async ()=> {
         for (snapshot of snapshots) {
             let formatted = formatSnapshot(snapshot);
             
-            const existing = await snapshotModel.findOne({
+            const existing = await rklSnapshotModel.findOne({
                 address: formatted.address,
-                tokenId: formatted.tokenId,
                 quantity: formatted.quantity
             });
             
             if (!existing) {
-                await snapshotModel.create(formatted);
+                console.log({ address: formatted.address, quantity: formatted.quantity });
+                await rklSnapshotModel.create(formatted);
             } else {
                 console.log("found existing.");
                 console.log({

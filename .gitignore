@@ -6,4 +6,11 @@ yarn.lock
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+<<<<<<< HEAD
 .csv
+=======
+*.test.js
+scripts/input*
+scripts/output*
+snapshot.csv
+>>>>>>> script update

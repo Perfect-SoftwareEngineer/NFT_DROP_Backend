@@ -4,7 +4,11 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
 const { snapshotModel } = require('./../Model/1226Snapshot');
+<<<<<<< HEAD
 const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
+=======
+const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
+>>>>>>> script update
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
 
@@ -234,11 +238,28 @@ const get1226SnapshotIndividualData = async (request, response) => {
     return response.json(snapshots);
 }
 
+
+const getRklSnapshot = async (request, response) => {
+    try {
+      await getRklSnapshotData(request, response);
+    } catch(err) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+    }
+}
+
+const getRklSnapshotData = async (request, response) => {
+    const { address } = request.params;
+    const snapshots = await rklSnapshotModel.find({});
+    
+    return response.json(snapshots);
+}
+
 module.exports = {
     getSnapshot,
     getIntelSnapshot,
     get1226Snapshot,
     get1226SnapshotIndividual,
+    getRklSnapshot,
     setQuantityByScript,
     updateSnapshotClaim
 }
