@@ -16,13 +16,9 @@ const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandb
 
 const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
 const galaTokenAddress = process.env.NODE_ENV == 'production' ? process.env.GALA_ADDRESS : process.env.GALA_ADDRESS_TEST;
+const rklTokenAddress = process.env.RKL_ADDRESS;
 
-const decentTokenIds = [
-  "210624583337114373395836055367340864637790190801098222508622021957",
-  "210624583337114373395836055367340864637790190801098222508622013296"
-]
-const sandboxTokenId = "55464657044963196816950587289035428064568320970692304673817341489687908321280";
-const galaTokenId = "138154640969901016166130090617297893851136";
+const sandboxTokenId = "55464657044963196816950587289035428064568320970692304673817341489688352917504";
 
 const getNft = async (request, response) => {
   try {
@@ -34,8 +30,9 @@ const getNft = async (request, response) => {
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
     const galaData = await getGalaData(wallet);
+    const rklData = await getRklData(wallet);
     // const galaData = [];
-    const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData];
+    const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData, ...rklData];
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
@@ -68,75 +65,68 @@ const getDropData = async (wallet) => {
 
 const getDecentralandData = async (wallet) => {
   try{
-    if(process.env.NODE_ENV != 'production') {
-      const nftContract = new web3.eth.Contract(ERC721ABI, '0x66194b1abcbfbedd83841775404b245c8f9e4183');
-      
-      const balance = await nftContract.methods.balanceOf(wallet).call();
-      const data = [];
-      const tokenIds = [];
-      let uri = "";
-      let quantity = 0;
-      for (let i = 0; i < balance; i++) {
-        let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
-        
-        if( decentTokenIds.includes(tokenId.toString()) ) {
-          if(uri == "")
-            uri = await nftContract.methods.tokenURI(tokenId).call();
-          tokenIds.push(tokenId);
-          quantity ++;
-        }
+    const nftContract = new web3.eth.Contract(ERC721ABI, '0x6609330d836cb64adf8fb54434e22a0323a11b4a');
+    
+    const balance = await nftContract.methods.balanceOf(wallet).call();
+    console.log(balance)
+    const data = [];
+    const tokenIds = [];
+    let uri = "";
+    let quantity = 0;
+    for (let i = 0; i < balance; i++) {
+      let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
+      console.log(tokenId)
+      if(tokenId >= 1 && tokenId <= 3100) {
+        if(uri == "")
+          uri = await nftContract.methods.tokenURI(tokenId).call();
+        tokenIds.push(tokenId);
+        quantity ++;
       }
-      if(quantity > 0) {
-        data.push({
-          wallet: wallet,
-          platform: "decentraland",
-          tokenId: tokenIds,
-          uri: uri,
-          quantity: Number(quantity)
-        })
-      }
-      return data;
-    } else {
-      return [];
     }
+    if(quantity > 0) {
+      data.push({
+        wallet: wallet,
+        platform: "decentraland",
+        tokenId: tokenIds,
+        uri: uri,
+        quantity: Number(quantity)
+      })
+    }
+    return data;
   } catch {
     return [];
   }
 }
 
 const getSandboxData = async (wallet) => {
-  if(process.env.NODE_ENV != 'production') {
-    tokensQuery = `
-      query($account: String, $tokenId: String) {
-        owner(id : $account) {
-          assetTokens(where: {token: $tokenId}){
-            token{
-              id
-              collection{
-                tokenURI
-              }
+  tokensQuery = `
+    query($account: String, $tokenId: String) {
+      owner(id : $account) {
+        assetTokens(where: {token: $tokenId}){
+          token{
+            id
+            collection{
+              tokenURI
             }
-            quantity
           }
+          quantity
         }
       }
-    `
-    const variables = { account : wallet.toLowerCase(), tokenId : sandboxTokenId};
-    const result = await gql.request(subgraphAPIURL, tokensQuery, variables)
-    if(result.owner) {
-      const data = result.owner.assetTokens.map(asset => {
-        return {
-          wallet: wallet,
-          platform: "sandbox",
-          tokenId: asset.token.id,
-          uri: 'https://gateway.pinata.cloud/' + asset.token.collection.tokenURI.replace("://", "/"),
-          quantity: asset.quantity
-        }
-      })
-      return data;
-    } else {
-      return [];
     }
+  `
+  const variables = { account : wallet.toLowerCase(), tokenId : sandboxTokenId};
+  const result = await gql.request(subgraphAPIURL, tokensQuery, variables)
+  if(result.owner) {
+    const data = result.owner.assetTokens.map(asset => {
+      return {
+        wallet: wallet,
+        platform: "sandbox",
+        tokenId: asset.token.id,
+        uri: 'https://gateway.pinata.cloud/' + asset.token.collection.tokenURI.replace("://", "/"),
+        quantity: asset.quantity
+      }
+    })
+    return data;
   } else {
     return [];
   }
@@ -160,6 +150,37 @@ const getGalaData = async (wallet) => {
         return [{
           wallet: wallet,
           platform: "gala",
+          tokenId: [],
+          uri: uri,
+          quantity: quantity
+        }]
+      }
+    }
+    return [];
+  } catch(err) {
+    console.log(err)
+    return [];
+  }
+}
+
+const getRklData = async (wallet) => {
+  try{
+    const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
+    const options = { chain: chain, address: wallet, token_address: rklTokenAddress};
+    const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
+    let quantity = 0;
+    let uri ;
+    if(nfts.result.length > 0) {
+      
+      nfts.result.map(asset => {
+        quantity += Number(asset.amount);
+        uri = asset.token_uri;
+        
+      })
+      if(quantity > 0) {
+        return [{
+          wallet: wallet,
+          platform: "rkl",
           tokenId: [],
           uri: uri,
           quantity: quantity

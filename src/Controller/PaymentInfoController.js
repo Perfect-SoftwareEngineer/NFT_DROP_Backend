@@ -63,6 +63,7 @@ const create = async (request, response) => {
       country_name,
       date
     } = request.body;
+    console.log(request.email, email)
     if(request.email == email) {
       const paymentInfo = new paymentInfoModel({
         email,

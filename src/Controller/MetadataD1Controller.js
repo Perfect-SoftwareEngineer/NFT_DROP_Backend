@@ -23,14 +23,6 @@ const getAll = async (request, response) => {
 const create = async (request, response) => {
   try {
 
-    // const user = await userModel.find({ wallet: request.wallet });
-    // if (!user) {
-    //   return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
-    // }
-    // if(user[0].role != "admin") {
-    //   return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
-    // }
-
     const {
       name,
       description,
@@ -50,7 +42,6 @@ const create = async (request, response) => {
       tokenId: tokenId,
       fee_recipient: feeRecipient
     });
-    console.log(metadata)
     await metadata.save();
     return response.status(HttpStatusCodes.OK).send(metadata._id);
   } catch(err) {
@@ -60,13 +51,6 @@ const create = async (request, response) => {
 
 const update = async (request, response) => {
   try {
-    // const user = await userModel.find({ wallet: request.wallet });
-    // if (!user) {
-    //   return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('No User');
-    // }
-    // if(user[0].role != "admin") {
-    //   return response.status(HttpStatusCodes.BAD_REQUEST).send('You are not allowed to update metadata');
-    // }
 
     const {
       name,
