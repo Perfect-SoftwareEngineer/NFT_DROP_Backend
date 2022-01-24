@@ -48,6 +48,8 @@
     "request": "^2.88.2",
     "socket.io": "^2.3.0",
     "stripe": "^8.191.0",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.3.0",
     "twitter-api-v2": "^1.7.0",
     "web3": "^1.6.1"
   },
@@ -55,6 +57,7 @@
     "jest": "^25.5.4",
     "jsdoc": "^3.6.3",
     "jsdoc-route-plugin": "^0.1.0",
+    "mongodb-memory-server": "^8.2.0",
     "supertest": "^6.2.1"
   }
 }

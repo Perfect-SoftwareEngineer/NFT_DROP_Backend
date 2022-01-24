@@ -68,14 +68,12 @@ const getDecentralandData = async (wallet) => {
     const nftContract = new web3.eth.Contract(ERC721ABI, '0x6609330d836cb64adf8fb54434e22a0323a11b4a');
     
     const balance = await nftContract.methods.balanceOf(wallet).call();
-    console.log(balance)
     const data = [];
     const tokenIds = [];
     let uri = "";
     let quantity = 0;
     for (let i = 0; i < balance; i++) {
       let tokenId = await nftContract.methods.tokenOfOwnerByIndex(wallet, i).call();
-      console.log(tokenId)
       if(tokenId >= 1 && tokenId <= 3100) {
         if(uri == "")
           uri = await nftContract.methods.tokenURI(tokenId).call();

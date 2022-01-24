@@ -6,6 +6,7 @@ require("dotenv").config();
 
 
 module.exports =function MiddlewareAuth(request, response, next) {
+  console.log(request)
   const token = request.header('Authorization');
   if (!token) {
     return response.status(HttpStatusCodes.UNAUTHORIZED).send('UnAuthorized, no token');
