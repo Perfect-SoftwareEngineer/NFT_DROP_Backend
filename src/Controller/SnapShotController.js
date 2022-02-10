@@ -4,22 +4,23 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
 const { snapshotModel } = require('./../Model/1226Snapshot');
+const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
-
-const csvWriter = createCsvWriter({
-  path: 'snapshot.csv',
-  header: [
-    {id: 'address', title: 'Address'},
-    {id: 'token_id', title: 'Token Id'},
-    {id: 'quantity', title: 'Quantity'}
-  ]
-});
 
 require("dotenv").config();
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
+const getCurrentDate = () => {
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, '0');
+  var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  var yyyy = today.getFullYear();
+
+  today = mm + '-' + dd + '-' + yyyy;
+  return today;
+}
 const updateSnapshotClaim = async (request, response) => {
     try {
       const {
@@ -52,7 +53,7 @@ const getHolderData = async (response) => {
         let results = [];
         let results_id = [];
         for(let i = 1; i <= 5 ; i ++) {
-          const data = await getHolderByTokenId(i);
+          const data = await getHolderByTokenId(process.env.DROP1_ADDRESS, i);
           results = results.concat(data);
           await delay(10000);
 
@@ -62,23 +63,92 @@ const getHolderData = async (response) => {
                 t.address === value.address && t.token_id === value.token_id
             ))
         )
+        
+        const today = getCurrentDate();
+
+        const csvWriter = createCsvWriter({
+          path: `${today}-snapshot.csv`,
+          header: [
+            {id: 'address', title: 'Address'},
+            {id: 'token_id', title: 'Token Id'},
+            {id: 'quantity', title: 'Quantity'}
+          ]
+        });
         await csvWriter.writeRecords(results);
-        const fileContent = fs.readFileSync('snapshot.csv');
-        upload(fileContent, 'SnapShot.csv', 'text/csv', response);
+        
+        const fileContent = fs.readFileSync(`${today}-snapshot.csv`);
+        upload(fileContent, `${today}-snapshot.csv`, 'text/csv', response);
     } catch(err) {
         console.log(err)
         return [];
     }
 }
 
-const getHolderByTokenId = async (tokdnId) => {
+const getIntelSnapshot = async (request, response) => {
+  try {
+    await getIntelHolderData(response);
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
+const getIntelHolderData = async (response) => {
+    try{
+        
+        let results = [];
+        let results_id = [];
+
+        const data = await getHolderByTokenId(process.env.INTEL_ADDRESS, 1);
+        results = results.concat(data);
+
+        results = results.filter((value, index, self) =>
+            index === self.findIndex((t) => (
+                t.address === value.address && t.token_id === value.token_id
+            ))
+        )
+        
+        await intelSnapshotModel.remove({});
+
+        results.map(async (list) => {
+          try{
+              const data = new intelSnapshotModel({
+                  address : list.address,
+                  token_id : list.token_id,
+                  quantity : list.quantity
+              })
+              await data.save()
+          } catch(err) {}
+      })
+
+      const today = getCurrentDate();
+
+      const csvWriter = createCsvWriter({
+        path: `${today}-intel-snapshot.csv`,
+        header: [
+          {id: 'address', title: 'Address'},
+          {id: 'token_id', title: 'Token Id'},
+          {id: 'quantity', title: 'Quantity'}
+        ]
+      });
+
+      await csvWriter.writeRecords(results);
+
+      const fileContent = fs.readFileSync(`${today}-intel-snapshot.csv`);
+      upload(fileContent, `${today}-intel-snapshot.csv`, 'text/csv', response);
+    } catch(err) {
+        console.log(err)
+        return [];
+    }
+}
+
+const getHolderByTokenId = async (token_address, tokdnId) => {
   let results = [];
   let progress = true;
   let offset = 0;
   console.log(tokdnId, progress)
   while(progress) {
       
-      const options = { chain: 'polygon', address: process.env.DROP1_ADDRESS, offset: offset, token_id : tokdnId.toString() };
+      const options = { chain: 'polygon', address: token_address, offset: offset, token_id : tokdnId.toString() };
       console.log(options)
       // await Moralis.Web3API.token.
       const nfts = await Moralis.Web3API.token.getNFTOwners(options);
@@ -166,6 +236,7 @@ const get1226SnapshotIndividualData = async (request, response) => {
 
 module.exports = {
     getSnapshot,
+    getIntelSnapshot,
     get1226Snapshot,
     get1226SnapshotIndividual,
     setQuantityByScript,

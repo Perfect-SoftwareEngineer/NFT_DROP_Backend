@@ -13,6 +13,7 @@ const {connectDB} = require('./src/config/dbconnect');
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterMetadataGala = require('./src/Router/MetadataGala');
+var RouterMetadataIntel = require('./src/Router/MetadataIntel');
 var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
@@ -23,9 +24,10 @@ const RouterStripe = require('./src/Router/Stripe');
 const RouterPaymentInfo = require('./src/Router/PaymentInfo');
 const RouterSnapShot = require('./src/Router/SnapShot');
 
+const RouterMerkle = require('./src/Router/Merkle');
+
 const cronJob = require('./src/cronJob');
-const {watchEtherTransfers} = require('./src/Controller/HolderD1Controller');
-const {setQuantityByScript} = require('./src/Controller/SnapShotController');
+const {getWhitelist} = require('./src/cronJob/twitter');
 
 require("dotenv").config();
 
@@ -74,6 +76,7 @@ app.get('/', (req, res)=> {
 app.use('/api/metadata/drop1', RouterMetadataD1);
 app.use('/api/metadata/drop3', RouterMetadataD3);
 app.use('/api/metadata/gala', RouterMetadataGala);
+app.use('/api/metadata/intel', RouterMetadataIntel);
 app.use('/api/auth', RouterAuth);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
@@ -82,7 +85,7 @@ app.use('/api/subscribe/email', RouterSubscribeEmail);
 app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
 app.use('/api/snapshot', RouterSnapShot);
-
+app.use('/api/merkle', RouterMerkle);
 //swagger doc
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
@@ -95,5 +98,6 @@ if (process.env.NODE_ENV == 'production') {
 
 // setQuantityByScript();
 
+// getWhitelist()
 
 module.exports = app;
