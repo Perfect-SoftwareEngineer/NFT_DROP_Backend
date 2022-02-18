@@ -4,11 +4,8 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
 const { snapshotModel } = require('./../Model/1226Snapshot');
-<<<<<<< HEAD
 const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
-=======
 const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
->>>>>>> script update
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
 

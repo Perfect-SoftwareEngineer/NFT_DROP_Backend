@@ -1,10 +1,6 @@
 const express = require("express");
 const router = express.Router();
-<<<<<<< HEAD
-const { getSnapshot, getIntelSnapshot, get1226Snapshot, get1226SnapshotIndividual, updateSnapshotClaim } = require("../Controller/SnapShotController");
-=======
-const { getSnapshot, get1226Snapshot, get1226SnapshotIndividual, getRklSnapshot, updateSnapshotClaim } = require("../Controller/SnapShotController");
->>>>>>> script update
+const { getSnapshot, getIntelSnapshot, getRklSnapshot, get1226Snapshot, get1226SnapshotIndividual, updateSnapshotClaim } = require("../Controller/SnapShotController");
 
 router.get("/get", getSnapshot);
 router.get("/get/intel", getIntelSnapshot);
