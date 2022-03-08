@@ -1,6 +1,6 @@
 let mongoose = require('mongoose')
 
-let intelSnapshotSchema = new mongoose.Schema({
+let intelSnapshotDrop1Schema = new mongoose.Schema({
     address : {
         type : String,
         unique : true,
@@ -19,5 +19,5 @@ let intelSnapshotSchema = new mongoose.Schema({
   });
 
 module.exports = {
-    intelSnapshotModel : mongoose.model('intel_snapshot', intelSnapshotSchema)
+    intelSnapshotDrop1Model : mongoose.model('intel_snapshot_drop1', intelSnapshotDrop1Schema)
 }

@@ -27,7 +27,7 @@ const RouterSnapShot = require('./src/Router/SnapShot');
 const RouterMerkle = require('./src/Router/Merkle');
 
 const cronJob = require('./src/cronJob');
-const {getWhitelist} = require('./src/cronJob/twitter');
+const {getWhitelist, setMockWhitelist} = require('./src/cronJob/twitter');
 
 require("dotenv").config();
 
@@ -99,5 +99,5 @@ if (process.env.NODE_ENV == 'production') {
 // setQuantityByScript();
 
 // getWhitelist()
-
+// setMockWhitelist()
 module.exports = app;

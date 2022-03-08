@@ -30,6 +30,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
     "express-validator": "^6.4.0",
+    "fast-csv": "^4.3.6",
     "fs": "0.0.1-security",
     "graphql": "^16.0.1",
     "graphql-request": "^3.6.1",
@@ -54,7 +55,7 @@
     "stripe": "^8.191.0",
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.3.0",
-    "twitter-api-v2": "^1.7.0",
+    "twitter-api-v2": "^1.11.0",
     "web3": "^1.6.1"
   },
   "devDependencies": {

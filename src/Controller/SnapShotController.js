@@ -4,7 +4,9 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
 const { Moralis }  = require('./MoralisController');
 const { snapshotModel } = require('./../Model/1226Snapshot');
-const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
+const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
+const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
+const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
 
@@ -84,15 +86,31 @@ const getHolderData = async (response) => {
     }
 }
 
-const getIntelSnapshot = async (request, response) => {
+const getIntelSnapshotDrop1 = async (request, response) => {
   try {
-    await getIntelHolderData(response);
+    await getIntelHolderData("drop1", response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 
-const getIntelHolderData = async (response) => {
+const getIntelSnapshotDrop2 = async (request, response) => {
+  try {
+    await getIntelHolderData("drop2", response);
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
+const getIntelSnapshotDrop3 = async (request, response) => {
+  try {
+    await getIntelHolderData("drop3", response);
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
+const getIntelHolderData = async (drop, response) => {
     try{
         
         let results = [];
@@ -106,12 +124,21 @@ const getIntelHolderData = async (response) => {
                 t.address === value.address && t.token_id === value.token_id
             ))
         )
+        let dbModel;
+        if(drop == "drop1") {
+          dbModel = intelSnapshotDrop1Model;
+        } else if(drop == "drop2") {
+          dbModel = intelSnapshotDrop2Model;
+        } else {
+          dbModel = intelSnapshotDrop3Model;
+        }
         
-        await intelSnapshotModel.remove({});
+              
+        await dbModel.remove({});
 
         results.map(async (list) => {
           try{
-              const data = new intelSnapshotModel({
+              const data = new dbModel({
                   address : list.address,
                   token_id : list.token_id,
                   quantity : list.quantity
@@ -123,7 +150,7 @@ const getIntelHolderData = async (response) => {
       const today = getCurrentDate();
 
       const csvWriter = createCsvWriter({
-        path: `${today}-intel-snapshot.csv`,
+        path: `${today}-${drop}-intel-snapshot.csv`,
         header: [
           {id: 'address', title: 'Address'},
           {id: 'token_id', title: 'Token Id'},
@@ -133,8 +160,8 @@ const getIntelHolderData = async (response) => {
 
       await csvWriter.writeRecords(results);
 
-      const fileContent = fs.readFileSync(`${today}-intel-snapshot.csv`);
-      upload(fileContent, `${today}-intel-snapshot.csv`, 'text/csv', response);
+      const fileContent = fs.readFileSync(`${today}-${drop}-intel-snapshot.csv`);
+      upload(fileContent, `${today}-${drop}-intel-snapshot.csv`, 'text/csv', response);
     } catch(err) {
         console.log(err)
         return [];
@@ -145,12 +172,11 @@ const getHolderByTokenId = async (token_address, tokdnId) => {
   let results = [];
   let progress = true;
   let offset = 0;
-  console.log(tokdnId, progress)
+  const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
   while(progress) {
       
-      const options = { chain: 'polygon', address: token_address, offset: offset, token_id : tokdnId.toString() };
-      console.log(options)
-      // await Moralis.Web3API.token.
+      const options = { chain: chain, address: token_address, offset: offset, token_id : tokdnId.toString() };
+
       const nfts = await Moralis.Web3API.token.getNFTOwners(options);
       await Promise.all(nfts.result.map(result => {
           results.push({
@@ -159,7 +185,6 @@ const getHolderByTokenId = async (token_address, tokdnId) => {
               quantity: result.amount
           })
       }))
-      console.log(nfts.total, nfts.page, nfts.page_size, tokdnId)
       if(nfts.total < (nfts.page + 1) * nfts.page_size){
           progress = false;
       }
@@ -178,6 +203,29 @@ const get1226Snapshot = async (request, response) => {
       return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
     }
 }
+
+// Get Snapshot as JSON
+const getIntelSnapshotList = async (request, response) => {
+  const { address } = request.params;
+  drop1_count = await intelSnapshotDrop1Model.countDocuments();
+  drop2_count = await intelSnapshotDrop2Model.countDocuments();
+  drop3_count = await intelSnapshotDrop3Model.countDocuments();
+
+  const q1 = drop1_count == 0 ? -1 : 0;
+  const q2 = drop2_count == 0 ? -1 : 0;
+  const q3 = drop3_count == 0 ? -1 : 0;
+
+  drop1 = await intelSnapshotDrop1Model.find({address: address.toLowerCase()});
+  drop2 = await intelSnapshotDrop2Model.find({address: address.toLowerCase()});
+  drop3 = await intelSnapshotDrop3Model.find({address: address.toLowerCase()});
+  const data = {
+    "drop1" : drop1[0] ? Number(drop1[0]['quantity']) : q1,
+    "drop2" : drop2[0] ? Number(drop2[0]['quantity']) : q2,
+    "drop3" : drop3[0] ? Number(drop3[0]['quantity']) : q3,
+  }
+  return response.status(HttpStatusCodes.OK).send(data);
+}
+
 
 // Get Snapshot as JSON Helper
 const get1226HolderData = async (response) => {
@@ -236,7 +284,10 @@ const get1226SnapshotIndividualData = async (request, response) => {
 
 module.exports = {
     getSnapshot,
-    getIntelSnapshot,
+    getIntelSnapshotDrop1,
+    getIntelSnapshotDrop2,
+    getIntelSnapshotDrop3,
+    getIntelSnapshotList,
     get1226Snapshot,
     get1226SnapshotIndividual,
     setQuantityByScript,
