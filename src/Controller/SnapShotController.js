@@ -7,6 +7,8 @@ const { snapshotModel } = require('./../Model/1226Snapshot');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
+// const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
+const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
 
@@ -282,6 +284,22 @@ const get1226SnapshotIndividualData = async (request, response) => {
     return response.json(snapshots);
 }
 
+
+const getRklSnapshot = async (request, response) => {
+    try {
+      await getRklSnapshotData(request, response);
+    } catch(err) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+    }
+}
+
+const getRklSnapshotData = async (request, response) => {
+    const { address } = request.params;
+    const snapshots = await rklSnapshotModel.find({});
+    
+    return response.json(snapshots);
+}
+
 module.exports = {
     getSnapshot,
     getIntelSnapshotDrop1,
@@ -290,6 +308,7 @@ module.exports = {
     getIntelSnapshotList,
     get1226Snapshot,
     get1226SnapshotIndividual,
+    getRklSnapshot,
     setQuantityByScript,
     updateSnapshotClaim
 }
