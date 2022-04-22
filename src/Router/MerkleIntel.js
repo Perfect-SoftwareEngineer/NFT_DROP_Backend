@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {getRoot, getHexProof} = require('../Controller/MerkleController');
+var {getRoot, getHexProof} = require('../Controller/MerkleIntelController');
 
 
 router.get('/root', (request, response) => {

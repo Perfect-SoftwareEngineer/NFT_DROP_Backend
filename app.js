@@ -4,30 +4,35 @@ var app = express();
 
 var bodyParser = require('body-parser');
 var cors = require('cors');
-const fileupload = require('express-fileupload');
-const swaggerUI = require('swagger-ui-express');
-const swaggerJsDoc = require('swagger-jsdoc');
+var fileupload = require('express-fileupload');
+var swaggerUI = require('swagger-ui-express');
+var swaggerJsDoc = require('swagger-jsdoc');
 
-const {connectDB} = require('./src/config/dbconnect');
+var {connectDB} = require('./src/config/dbconnect');
 
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterMetadataGala = require('./src/Router/MetadataGala');
 var RouterMetadataIntel = require('./src/Router/MetadataIntel');
+var RouterMetadataBB = require('./src/Router/MetadataBB');
+
 var RouterAuth = require('./src/Router/Auth');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
 
 var RouterLocker = require('./src/Router/Locker');
 var RouterSubscribeEmail = require('./src/Router/SubscribeEmail');
-const RouterStripe = require('./src/Router/Stripe');
-const RouterPaymentInfo = require('./src/Router/PaymentInfo');
-const RouterSnapShot = require('./src/Router/SnapShot');
+var RouterStripe = require('./src/Router/Stripe');
+var RouterPaymentInfo = require('./src/Router/PaymentInfo');
+var RouterSnapShot = require('./src/Router/SnapShot');
 
-const RouterMerkle = require('./src/Router/Merkle');
+var RouterMerkleIntel = require('./src/Router/MerkleIntel');
+var RouterMerkleCurryV2 = require('./src/Router/MerkleCurryV2');
 
-const cronJob = require('./src/cronJob');
-const {getWhitelist, setMockWhitelist} = require('./src/cronJob/twitter');
+var RouterFreeBB = require('./src/Router/FreeBB');
+var RouterCurrentMatch = require('./src/Router/CurrentMatch')
+var cronJob = require('./src/cronJob');
+var {getWhitelist, setMockWhitelist} = require('./src/cronJob/twitter');
 
 require("dotenv").config();
 
@@ -77,6 +82,8 @@ app.use('/api/metadata/drop1', RouterMetadataD1);
 app.use('/api/metadata/drop3', RouterMetadataD3);
 app.use('/api/metadata/gala', RouterMetadataGala);
 app.use('/api/metadata/intel', RouterMetadataIntel);
+app.use('/api/metadata/basketball', RouterMetadataBB);
+app.use('/api/curryv2/free/basketball', RouterFreeBB);
 app.use('/api/auth', RouterAuth);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
@@ -85,19 +92,15 @@ app.use('/api/subscribe/email', RouterSubscribeEmail);
 app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
 app.use('/api/snapshot', RouterSnapShot);
-app.use('/api/merkle', RouterMerkle);
+app.use('/api/intel/merkle', RouterMerkleIntel);
+app.use('/api/curryv2/merkle', RouterMerkleCurryV2);
+app.use('/api/curryv2/current/match', RouterCurrentMatch);
 //swagger doc
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
 // cron job
-if (process.env.NODE_ENV == 'production') {
+// if (process.env.NODE_ENV == 'production') {
     cronJob();
-}
+// }
 
-// watchEtherTransfers();
-
-// setQuantityByScript();
-
-// getWhitelist()
-// setMockWhitelist()
 module.exports = app;

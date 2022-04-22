@@ -1,14 +1,17 @@
 const cron = require("node-cron");
-const { runRoutine } = require("./threesCurry");
+const { runTpmJob, runLiveMatchJob, runTpmMatchJob } = require("./threesCurry");
 
 const cronJob = () => {
   if (process.env.NODE_ENV == 'production') {
       const threesCurryTask = cron.schedule("*/1 * * * *", () => {
-        runRoutine();
+        runTpmJob();
       });
       
       threesCurryTask.start();
   }
+  cron.schedule("*/3 * * * *", () => {
+    runLiveMatchJob()
+  });
 };
 
 module.exports = cronJob;
