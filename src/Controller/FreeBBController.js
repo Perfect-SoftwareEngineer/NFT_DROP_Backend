@@ -4,7 +4,11 @@ var HttpStatusCodes = require('http-status-codes');
 
 
 const get = async (request, response) => {
-  const {gameId} = request.params;
+  const {gameId, wallet} = request.params;
+  const userBB = await freeBBModel.find({ game_id: parseInt(gameId), wallet: wallet.toLowerCase()}).limit(1);
+  if(userBB.length > 0) {
+    return response.status(HttpStatusCodes.OK).send([]);
+  }
   const freeBB = await freeBBModel.find({ game_id: parseInt(gameId), wallet: "0x"}).limit(1);
   if (!freeBB) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
@@ -23,7 +27,9 @@ const getWinner = async (request, response) => {
 
 const getUnclaimed = async (request, response) => {
   const {wallet} = request.params;
-  const freeBB = await freeBBModel.find({ claimed: false, wallet: wallet.toLowerCase()}).limit(1);
+  const currentMatch = await currentWarriorsMatchModel.find({merkled: false});
+  const gameId = currentMatch.length > 0 ? currentMatch[0]['game_id'] : 0;
+  const freeBB = await freeBBModel.find({ claimed: false, wallet: wallet.toLowerCase(), game_id: {$not: {$eq: gameId}} });
   if (!freeBB) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }

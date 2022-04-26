@@ -1,16 +1,20 @@
 const { default: axios } = require("axios");
+const { DefenderRelayProvider } = require('defender-relay-client/lib/web3');
+const Web3 = require('web3');
+const cron = require("node-cron");
+
 const {getBBRoot} = require('../Controller/MerkleCurryV2Controller');
 const { threesCurryModel } = require("../Model/ThreesCurryModel");
 const { currentWarriorsMatchModel } = require("../Model/CurrentWarriorsMatchModel");
 const { freeBBModel } = require("../Model/FreeBBModel");
 const { createTweet, client } = require('./twitter');
-const { DefenderRelayProvider } = require('defender-relay-client/lib/web3');
-const Web3 = require('web3');
-const cron = require("node-cron");
-
 const BBHABI = require('../config/ABI/BasketBallHead');
 
 require("dotenv").config();
+
+// to confirm match ends
+var noResponseCount = 0;
+
 
 tpmCron = cron.schedule("*/1 * * * *", () => {
   runTpmMatchJob()
@@ -129,7 +133,6 @@ const getLiveMatch = (cb) => {
   axios(optionlive)
     .then((response) => {
       const { data } = response;
-      // console.log(data.api.statistics)
       let currentMatch = {
         gameId: 0,
         season: 0,
@@ -139,7 +142,6 @@ const getLiveMatch = (cb) => {
         
         for(let i = 0; i < data.response.length ; i ++) {
           const match = data.response[i];
-          console.log(match)
           if(match.teams.visitors.id == 11) 
             currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.home.name};
           else if (match.teams.home.id ==11)
@@ -171,8 +173,7 @@ const getTmpMatch = (playerId, gameId, season, cb) => {
       const { data } = response;
       let tpm = 0;
       if(data.response.length > 0){
-        console.log(data.response[0])
-        tpm = data.response[0].tpm;
+        tpm = data.response[0].tpm * 3;
       }
       cb(tpm);
     })
@@ -183,8 +184,7 @@ const getTmpMatch = (playerId, gameId, season, cb) => {
 
 
 
-async function addFreeMint(amount) {
-  console.log({amount})
+async function setRootKey(gameId, rootKey, amount) {
   const credentials = { apiKey: process.env.OZ_DEFENDER_API_KEY, apiSecret: process.env.OZ_DEFENDER_SECRET_KEY };
   const provider = new DefenderRelayProvider(credentials, { speed: 'fast' });
   const web3 = new Web3(provider);
@@ -192,7 +192,8 @@ async function addFreeMint(amount) {
   const [from] = await web3.eth.getAccounts();
   const contract = new web3.eth.Contract(BBHABI, process.env.BBH_ADDRESS, { from });
   try{
-    const tx = await contract.methods.updateFreeMintSupply(amount).send();
+    const tx = await contract.methods.setGameRootKey(gameId, rootKey, amount).send();
+    console.log(tx)
   } catch(err) {
     console.log({err})
   }
@@ -219,14 +220,16 @@ const runLiveMatchJob = () => {
             console.log({err})
           }
         }
-        // tpmCron.start();
       }
       else {
         if(matches.length > 0 && matches[0].live) {
-          matches[0].live = false;
-          await matches[0].save();
-          // TODO - stop queue && make merkle tree
-          removeTpmMatchJob(matches[0]['game_id'])
+          if(++noResponseCount == 3) {
+            matches[0].live = false;
+            await matches[0].save();
+            noResponseCount = 0;
+            // TODO - stop queue && make merkle tree
+            removeTpmMatchJob(matches[0]['game_id'])
+          }
         }
       }
     } catch (err) {
@@ -256,18 +259,18 @@ const runTpmMatchJob = async () => {
 
 const removeTpmMatchJob = async (gameId) => {
   tpmCron.stop();
-  // console.log("shit end");
   //ToDo - Build Merkle Tree
   setTimeout(setMerkleRoot, 3600000, gameId)
 }
 
 const setMerkleRoot = async (gameId) => {
   const rootKey = await getBBRoot(gameId);
-  const matches = await currentWarriorsMatchModel.find({live : true, game_id: gameId}).limit(1);
+  const matches = await currentWarriorsMatchModel.find({live : false, game_id: gameId}).limit(1);
   if(matches.length > 0) {
-    matches[0]['merkled'] = true;;
+    matches[0]['merkled'] = true;
     await matches[0].save();
-    console.log(rootKey, matches[0]['tpm']);
+    console.log(gameId, rootKey, matches[0]['tpm'])
+    setRootKey(gameId, rootKey, matches[0]['tpm']);
   }
 }
 module.exports = {

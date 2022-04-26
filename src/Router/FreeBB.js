@@ -8,7 +8,7 @@ router.get('/getAll', async(request, response) => {
     getAll(request, response);
 });
 
-router.get('/get/:gameId', async(request, response) => {
+router.get('/get/:gameId/:wallet', async(request, response) => {
     get(request, response);
 });
 
