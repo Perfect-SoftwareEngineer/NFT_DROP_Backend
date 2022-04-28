@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {get, getWinner, getAll, reserve, getUnclaimed, claim} = require('../Controller/FreeBBController');
+var {get, getWinner, getCount, getAll, reserve, getUnclaimed, claim} = require('../Controller/FreeBBController');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
 
@@ -12,6 +12,9 @@ router.get('/get/:gameId/:wallet', async(request, response) => {
     get(request, response);
 });
 
+router.get('/get_count/:gameId/', async(request, response) => {
+    getCount(request, response);
+});
 router.get('/get_winner/:gameId', async(request, response) => {
     getWinner(request, response);
 });

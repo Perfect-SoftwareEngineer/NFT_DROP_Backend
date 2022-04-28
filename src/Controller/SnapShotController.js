@@ -7,7 +7,7 @@ const { snapshotModel } = require('./../Model/1226Snapshot');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
-// const {intelSnapshotModel} = require('../Model/IntelSnapshotModel');
+const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
 const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
 var { upload } = require('./S3Controller')
 var GalaABI = require('../config/ABI/Gala');
@@ -68,6 +68,19 @@ const getHolderData = async (response) => {
             ))
         )
         
+        await curryV2GCFSnapshotModel.remove({});
+
+        results.map(async (list) => {
+          try{
+              const data = new curryV2GCFSnapshotModel({
+                  address : list.address,
+                  token_id : list.token_id,
+                  quantity : list.quantity
+              })
+              await data.save()
+          } catch(err) {}
+        })
+
         const today = getCurrentDate();
 
         const csvWriter = createCsvWriter({

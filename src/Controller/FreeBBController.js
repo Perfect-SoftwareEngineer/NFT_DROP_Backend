@@ -7,13 +7,31 @@ const get = async (request, response) => {
   const {gameId, wallet} = request.params;
   const userBB = await freeBBModel.find({ game_id: parseInt(gameId), wallet: wallet.toLowerCase()}).limit(1);
   if(userBB.length > 0) {
-    return response.status(HttpStatusCodes.OK).send([]);
+    return response.status(HttpStatusCodes.OK).send(userBB);
   }
   const freeBB = await freeBBModel.find({ game_id: parseInt(gameId), wallet: "0x"}).limit(1);
   if (!freeBB) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
   }
   return response.status(HttpStatusCodes.OK).send(freeBB);
+}
+
+const getCount = async (request, response) => {
+  const {gameId} = request.params;
+  const currentMatch = await currentWarriorsMatchModel.find({game_id: parseInt(gameId)});
+  if(currentMatch.length == 0) {
+    return response.status(HttpStatusCodes.OK).send([0, 0]);
+  } 
+  else {
+    const freeBB = await freeBBModel.find({ game_id: parseInt(gameId), wallet: "0x"});
+    if (!freeBB) {
+      return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+    }
+    const tpm = parseInt(currentMatch[0]['tpm']);
+    const freeBBCount = currentMatch[0]['merkled'] ? 0 : freeBB.length;
+    return response.status(HttpStatusCodes.OK).send([tpm, freeBBCount]);
+  }
+  
 }
 
 const getWinner = async (request, response) => {
@@ -103,6 +121,7 @@ const claim = async (request, response) => {
 module.exports = {
   get,
   getWinner,
+  getCount,
   getAll,
   getUnclaimed,
   reserve,

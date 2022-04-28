@@ -145,7 +145,7 @@ const getLiveMatch = (cb) => {
           if(match.teams.visitors.id == 11) 
             currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.home.name};
           else if (match.teams.home.id ==11)
-            currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.home.name};
+            currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.visitors.name};
         }
       }
       console.log(currentMatch)
@@ -205,6 +205,7 @@ const runLiveMatchJob = () => {
     try{
       const matches = await currentWarriorsMatchModel.find().sort({updatedAt: -1}).limit(1);
       if(gameId != 0) {
+	      noResponseCount = 0;
         if(!(matches.length > 0 && matches[0].game_id == gameId)){
           await currentWarriorsMatchModel.create({
             game_id : gameId,
@@ -214,11 +215,6 @@ const runLiveMatchJob = () => {
             live: true
           })
           // TODO - start fetching 3pt score of curry for this game id
-          try{
-            tpmCron.start();
-          } catch(err) {
-            console.log({err})
-          }
         }
       }
       else {
@@ -258,7 +254,6 @@ const runTpmMatchJob = async () => {
 }
 
 const removeTpmMatchJob = async (gameId) => {
-  tpmCron.stop();
   //ToDo - Build Merkle Tree
   setTimeout(setMerkleRoot, 3600000, gameId)
 }
