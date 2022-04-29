@@ -17,6 +17,14 @@ const initMerkleSingle = async (gameId) => {
     return merkleTree;
 }
 
+const initMerkleMultiple = async (data) => {
+    const leafNodes = await data.map((node) => {
+        return utils.solidityKeccak256( ["address", "uint"], [node['address'], parseInt(node['quantity'])]);
+    });
+    const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
+    return merkleTree;
+}
+
 const getBBRoot = async (gameId) => {
     const merkleTree = await initMerkleSingle(gameId);
     const rootHash = merkleTree.getHexRoot();
@@ -31,13 +39,37 @@ const getBBHexProof = async (request, response) => {
     return response.status(HttpStatusCodes.OK).send(hexProof);
 }
 
-const getGCFRoot = async (gameId) => {
-    const merkleTree = await initMerkleSingle(gameId);
+const getGCFRoot = async (request, response) => {
+    const gcfData = await curryV2GCFSnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(gcfData);
     const rootHash = merkleTree.getHexRoot();
-    return rootHash;
+    return response.status(HttpStatusCodes.OK).send(rootHash);
 }
 
+
+const getGCFHexProof = async (request, response) => {
+    const {wallet} = request.params;
+    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase()});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.OK).send({
+            quantity: 0,
+            hexProof: []
+        });
+    } else {
+        const gcfData = await curryV2GCFSnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(gcfData);
+        const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
+        const hexProof = merkleTree.getHexProof(claimingAddress);
+        return response.status(HttpStatusCodes.OK).send({
+            quantity: parseInt(userData[0]['quantity']),
+            hexProof: hexProof
+        });
+    }
+    
+}
 module.exports = {
     getBBRoot,
-    getBBHexProof
+    getGCFRoot,
+    getBBHexProof,
+    getGCFHexProof
 }

@@ -152,7 +152,7 @@ const getLiveMatch = (cb) => {
       cb(currentMatch.gameId, currentMatch.season, currentMatch.oppositeTeam)
     })
     .catch((err) => {
-      console.log(err)
+      // console.log(err)
     })
 }
 

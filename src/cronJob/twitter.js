@@ -6,7 +6,6 @@ var {intelWhitelistLikeModel} = require('../Model/IntelWhitelistLikeModel')
 var {intelWhitelistRetweetModel} = require('../Model/IntelWhitelistRetweetModel')
 
 
-var stream = fs.createReadStream("./holders.csv");
 
 // Instantiate Twitter API
 const client = new TwitterApi({
@@ -209,40 +208,8 @@ async function getWhitelist() {
 }
 
 
-function getHolders() {
-    return new Promise((resolve, reject) => {
-      let address = [];
-      let data = [];
-      csv
-        .parseStream(stream, { headers: true })
-        .on("data", function (data) {
-          address.push(data["HolderAddress"]);
-        })
-        .on("end", function () {
-          console.log("done");
-          data[0] = address;
-              resolve(data);
-        });
-    });
-  }
-
-async function setMockWhitelist() {
-    const data = await getHolders();
-    const addresses = data[0];
-    let i = 0;
-    addresses.slice(0, 2000).map(async (addr) => {
-        try{
-            const data = new intelWhitelistModel({
-                user : i++,
-                wallet : addr
-            })
-            await data.save()
-        } catch(err) {}
-    })
-}
 module.exports = {
     client,
     createTweet,
     getWhitelist,
-    setMockWhitelist
 }

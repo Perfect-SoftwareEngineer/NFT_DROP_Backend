@@ -67,8 +67,7 @@ const getHolderData = async (response) => {
                 t.address === value.address && t.token_id === value.token_id
             ))
         )
-        
-        await curryV2GCFSnapshotModel.remove({});
+        await curryV2GCFSnapshotModel.deleteMany({});
 
         results.map(async (list) => {
           try{
@@ -94,7 +93,9 @@ const getHolderData = async (response) => {
         await csvWriter.writeRecords(results);
         
         const fileContent = fs.readFileSync(`${today}-snapshot.csv`);
+        fs.unlinkSync(`${today}-snapshot.csv`)
         upload(fileContent, `${today}-snapshot.csv`, 'text/csv', response);
+        return `${today}-snapshot.csv`;
     } catch(err) {
         console.log(err)
         return [];
@@ -186,12 +187,11 @@ const getIntelHolderData = async (drop, response) => {
 const getHolderByTokenId = async (token_address, tokdnId) => {
   let results = [];
   let progress = true;
-  let offset = 0;
+  let cursor = "";
   const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
   while(progress) {
       
-      const options = { chain: chain, address: token_address, offset: offset, token_id : tokdnId.toString() };
-
+      const options = { chain: chain, address: token_address, cursor: cursor, token_id : tokdnId.toString() };
       const nfts = await Moralis.Web3API.token.getNFTOwners(options);
       await Promise.all(nfts.result.map(result => {
           results.push({
@@ -204,7 +204,7 @@ const getHolderByTokenId = async (token_address, tokdnId) => {
           progress = false;
       }
       else {
-          offset = (nfts.page + 1) * nfts.page_size;
+        cursor = nfts.cursor;
       }
   }
   return results;
