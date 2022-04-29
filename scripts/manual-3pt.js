@@ -79,7 +79,8 @@ const setTpm = async () => {
             }
             matches[0]['tpm'] += 1;
             await matches[0].save();
-            logger.info("SUCCESS");
+            logger = log4js.getLogger('3 point score');
+            logger.info(matches[0]['tpm'])
         } catch (err) {
             logger.error(err);
         }
