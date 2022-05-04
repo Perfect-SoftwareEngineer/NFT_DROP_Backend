@@ -113,7 +113,7 @@ const runTpmJob = () => {
           // await addFreeMint(value - document.value);
           await storeTotalThreesInDB(playerId, value);
           
-          await createTweet(`Steph Curry 3-point count: ${value}`);
+          // await createTweet(`Steph Curry 3-point count: ${value}`);
       }
   });
 };
