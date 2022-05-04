@@ -22,7 +22,6 @@ async function watchClaim(gameId, wallet) {
                 userBB[0]['claimed'] = true;
                 await userBB[0].save();
             }
-            
         }
     });
 }
