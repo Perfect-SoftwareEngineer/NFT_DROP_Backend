@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {get, getWinner, getCount, getAll, reserve, getUnclaimed, claim} = require('../Controller/FreeBBController');
+var {get, getWinner, getCount, getAll, reserve, getUnclaimed, claimStarted, claim} = require('../Controller/FreeBBController');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
 
@@ -25,6 +25,10 @@ router.get('/get_unclaimed/:wallet',  async(request, response) => {
 
 router.post('/reserve',  async(request, response) => {
     reserve(request, response);
+});
+
+router.post('/claim_started',  async(request, response) => {
+    claimStarted(request, response);
 });
 
 router.post('/claim',  async(request, response) => {

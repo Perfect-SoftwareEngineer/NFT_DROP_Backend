@@ -264,8 +264,8 @@ const setMerkleRoot = async (gameId) => {
   if(matches.length > 0) {
     matches[0]['merkled'] = true;
     await matches[0].save();
-    console.log(gameId, rootKey, matches[0]['tpm'])
-    setRootKey(gameId, rootKey, matches[0]['tpm']);
+    console.log(gameId, rootKey, matches[0]['tpm'] * 3)
+    setRootKey(gameId, rootKey, matches[0]['tpm'] * 3);
   }
 }
 module.exports = {

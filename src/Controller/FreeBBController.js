@@ -1,5 +1,6 @@
 var {freeBBModel} = require('../Model/FreeBBModel')
-var { currentWarriorsMatchModel } = require("../Model/CurrentWarriorsMatchModel");
+var {currentWarriorsMatchModel} = require("../Model/CurrentWarriorsMatchModel");
+var {watchClaim} = require('../Service/Web3Service');
 var HttpStatusCodes = require('http-status-codes');
 
 
@@ -95,6 +96,21 @@ const reserve = async (request, response) => {
 }
 
 
+const claimStarted = async (request, response) => {
+  try {
+
+    const {
+      gameId,
+      wallet
+    } = request.body;
+
+    setTimeout(watchClaim, 180000, gameId, wallet)
+    
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
 const claim = async (request, response) => {
   try {
 
@@ -125,5 +141,6 @@ module.exports = {
   getAll,
   getUnclaimed,
   reserve,
+  claimStarted,
   claim
 }
