@@ -105,8 +105,10 @@ const setTpm = async () => {
             logger = log4js.getLogger('3 point score');
             logger.info(matches[0]['tpm'])
             
-            console.log('creating tweet');
-            await createTweet(`Steph Curry scores another 3 in the 2022 playoffs!`);
+            if (process.env.NODE_ENV='production') {
+                console.log('creating tweet');
+                await createTweet(`Steph Curry scores another 3 in the 2022 playoffs!`);
+            }
         } catch (err) {
             logger.error(err);
         }
