@@ -7,6 +7,7 @@ require("dotenv").config();
 const web3 = new Web3(new Web3.providers.HttpProvider(process.env.ETHEREUM_HTTP_NODE));
 
 async function watchClaim(gameId, wallet) {
+    console.log("claim status double check")
     const beneficiary = web3.utils.toChecksumAddress(wallet);
 	const contract = new web3.eth.Contract(BBHABI, process.env.BBH_ADDRESS);
     contract.getPastEvents('claimedFromThreePoint', {
