@@ -1,6 +1,7 @@
 
 const { connect, disconnect } = require('mongoose');
 var log4js = require("log4js");
+const { TwitterApi } = require('twitter-api-v2');
 
 const dotenv = require('dotenv');
 
@@ -9,6 +10,28 @@ const { freeBBModel } = require("../src/Model/FreeBBModel");
 
 dotenv.config({ path: './../.env'});
 
+// Instantiate Twitter API
+const client = new TwitterApi({
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+});
+
+async function createTweet(status) {
+    try {
+        const createdTweet = await client.v1.tweet(status, {
+            status
+        });
+        console.log('Tweet', createdTweet.id_str, ':', createdTweet.full_text);
+    } catch(e) {
+        if (e.code != 403) {
+            console.error(e);
+        } else {
+            console.log('duplicate tweet. Not tweeting...');
+        }
+    }
+}
 
 const connectDB = async () => {
   try {
@@ -81,6 +104,11 @@ const setTpm = async () => {
             await matches[0].save();
             logger = log4js.getLogger('3 point score');
             logger.info(matches[0]['tpm'])
+            
+            if (process.env.NODE_ENV==='production') {
+                console.log('creating tweet');
+                await createTweet(`Steph Curry scores another 3 in the 2022 playoffs!`);
+            }
         } catch (err) {
             logger.error(err);
         }
