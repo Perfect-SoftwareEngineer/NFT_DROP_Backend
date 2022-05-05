@@ -94,7 +94,8 @@ async function setRootKey(gameId, rootKey, amount) {
   const web3 = new Web3(provider);
   
   const [from] = await web3.eth.getAccounts();
-  const contract = new web3.eth.Contract(BBHABI, process.env.BBH_ADDRESS, { from });
+  const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+  const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
   try{
     const tx = await contract.methods.setGameRootKey(gameId, rootKey, amount).send();
     console.log(tx)

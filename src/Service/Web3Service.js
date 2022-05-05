@@ -9,7 +9,8 @@ const web3 = new Web3(new Web3.providers.HttpProvider(process.env.ETHEREUM_HTTP_
 async function watchClaim(gameId, wallet) {
     console.log("claim status double check")
     const beneficiary = web3.utils.toChecksumAddress(wallet);
-	const contract = new web3.eth.Contract(BBHABI, process.env.BBH_ADDRESS);
+    const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+	const contract = new web3.eth.Contract(BBHABI, contractAddress);
     contract.getPastEvents('claimedFromThreePoint', {
         fromBlock: 14699425,
         toBlock: 'latest'

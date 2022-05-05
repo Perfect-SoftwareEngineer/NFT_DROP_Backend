@@ -105,7 +105,7 @@ const claimStarted = async (request, response) => {
     } = request.body;
 
     setTimeout(watchClaim, 180000, gameId, wallet)
-    
+    return response.status(HttpStatusCodes.OK).send("ok");
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
