@@ -94,7 +94,7 @@ const setTpm = async () => {
         logger.warn("no live game data");
     } else {
         try {
-            for(let i = 0; i < 3 ; i ++) {
+            for(let i = 0; i < 9 ; i ++) {
                 await freeBBModel.create({
                     'game_id': matches[0]['game_id'],
                     'wallet': '0x'
@@ -107,7 +107,7 @@ const setTpm = async () => {
             
             if (process.env.NODE_ENV==='production') {
                 console.log('creating tweet');
-                await createTweet(`Steph Curry scores another 3 in the 2022 playoffs!`);
+                await createTweet(`Steph Curry scores another 3 in the 2022 playoffs! Rand #${Math.floor(Math.random() * 100)}`);
             }
         } catch (err) {
             logger.error(err);
