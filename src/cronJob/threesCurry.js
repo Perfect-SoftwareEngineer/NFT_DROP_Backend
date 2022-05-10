@@ -77,7 +77,7 @@ const getTmpMatch = (playerId, gameId, season, cb) => {
       const { data } = response;
       let tpm = 0;
       if(data.response.length > 0){
-        tpm = data.response[0].tpm * 3;
+        tpm = data.response[0].tpm * 9;
       }
       cb(tpm);
     })
@@ -169,8 +169,8 @@ const setMerkleRoot = async (gameId) => {
   if(matches.length > 0) {
     matches[0]['merkled'] = true;
     await matches[0].save();
-    console.log(gameId, rootKey, matches[0]['tpm'] * 3)
-    setRootKey(gameId, rootKey, matches[0]['tpm'] * 3);
+    console.log(gameId, rootKey, matches[0]['tpm'] * 9)
+    setRootKey(gameId, rootKey, matches[0]['tpm'] * 9);
   }
 }
 module.exports = {
