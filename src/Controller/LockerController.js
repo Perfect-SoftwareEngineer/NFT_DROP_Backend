@@ -2,7 +2,7 @@ var HttpStatusCodes = require('http-status-codes');
 const gql = require('graphql-request');
 
 const Web3 = require("web3");
-const {Moralis}  = require('./MoralisController');
+const {Moralis}  = require('../Service/MoralisService');
 var {holderD1Model} = require('../Model/HolderD1Model')
 var ERC721ABI = require('../config/ABI/ERC721');
 

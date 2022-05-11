@@ -1,7 +1,6 @@
 const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
 const sgMail = require("@sendgrid/mail");
-const {Moralis}  = require('./MoralisController');
 var {paymentInfoModel} = require('../Model/PaymentInfoModel')
 var {sendEmail} = require('./EmailServiceController');
 var ERC1155ABI = require('../config/ABI/ERC1155');

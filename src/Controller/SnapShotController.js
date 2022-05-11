@@ -2,29 +2,18 @@ const Web3 = require("web3");
 var HttpStatusCodes = require('http-status-codes');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
-const { Moralis }  = require('./MoralisController');
+const { Moralis }  = require('../Service/MoralisService');
 const { snapshotModel } = require('./../Model/1226Snapshot');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
 const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
 const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
-var { upload } = require('./S3Controller')
-var GalaABI = require('../config/ABI/Gala');
+const { upload } = require('../Service/S3Service');
+const {getHolderData, getCommunityHolderData, getIntelHolderData} = require('../Service/SnapshotService');
 
 require("dotenv").config();
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-const getCurrentDate = () => {
-  var today = new Date();
-  var dd = String(today.getDate()).padStart(2, '0');
-  var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-  var yyyy = today.getFullYear();
-
-  today = mm + '-' + dd + '-' + yyyy;
-  return today;
-}
 const updateSnapshotClaim = async (request, response) => {
     try {
       const {
@@ -51,56 +40,14 @@ const getSnapshot = async (request, response) => {
   }
 }
 
-const getHolderData = async (response) => {
-    try{
-        
-        let results = [];
-        let results_id = [];
-        for(let i = 1; i <= 5 ; i ++) {
-          const data = await getHolderByTokenId(process.env.DROP1_ADDRESS, i);
-          results = results.concat(data);
-          await delay(10000);
-
-        }
-        results = results.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-                t.address === value.address && t.token_id === value.token_id
-            ))
-        )
-        await curryV2GCFSnapshotModel.deleteMany({});
-
-        results.map(async (list) => {
-          try{
-              const data = new curryV2GCFSnapshotModel({
-                  address : list.address,
-                  token_id : list.token_id,
-                  quantity : list.quantity
-              })
-              await data.save()
-          } catch(err) {}
-        })
-
-        const today = getCurrentDate();
-
-        const csvWriter = createCsvWriter({
-          path: `${today}-snapshot.csv`,
-          header: [
-            {id: 'address', title: 'Address'},
-            {id: 'token_id', title: 'Token Id'},
-            {id: 'quantity', title: 'Quantity'}
-          ]
-        });
-        await csvWriter.writeRecords(results);
-        
-        const fileContent = fs.readFileSync(`${today}-snapshot.csv`);
-        fs.unlinkSync(`${today}-snapshot.csv`)
-        upload(fileContent, `${today}-snapshot.csv`, 'text/csv', response);
-        return `${today}-snapshot.csv`;
-    } catch(err) {
-        console.log(err)
-        return [];
-    }
+const getCommunitySnapshot = async (request, response) => {
+  try {
+    await getCommunityHolderData(response)
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
 }
+
 
 const getIntelSnapshotDrop1 = async (request, response) => {
   try {
@@ -124,90 +71,6 @@ const getIntelSnapshotDrop3 = async (request, response) => {
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
-}
-
-const getIntelHolderData = async (drop, response) => {
-    try{
-        
-        let results = [];
-        let results_id = [];
-
-        const data = await getHolderByTokenId(process.env.INTEL_ADDRESS, 1);
-        results = results.concat(data);
-
-        results = results.filter((value, index, self) =>
-            index === self.findIndex((t) => (
-                t.address === value.address && t.token_id === value.token_id
-            ))
-        )
-        let dbModel;
-        if(drop == "drop1") {
-          dbModel = intelSnapshotDrop1Model;
-        } else if(drop == "drop2") {
-          dbModel = intelSnapshotDrop2Model;
-        } else {
-          dbModel = intelSnapshotDrop3Model;
-        }
-        
-              
-        await dbModel.remove({});
-
-        results.map(async (list) => {
-          try{
-              const data = new dbModel({
-                  address : list.address,
-                  token_id : list.token_id,
-                  quantity : list.quantity
-              })
-              await data.save()
-          } catch(err) {}
-      })
-
-      const today = getCurrentDate();
-
-      const csvWriter = createCsvWriter({
-        path: `${today}-${drop}-intel-snapshot.csv`,
-        header: [
-          {id: 'address', title: 'Address'},
-          {id: 'token_id', title: 'Token Id'},
-          {id: 'quantity', title: 'Quantity'}
-        ]
-      });
-
-      await csvWriter.writeRecords(results);
-
-      const fileContent = fs.readFileSync(`${today}-${drop}-intel-snapshot.csv`);
-      upload(fileContent, `${today}-${drop}-intel-snapshot.csv`, 'text/csv', response);
-    } catch(err) {
-        console.log(err)
-        return [];
-    }
-}
-
-const getHolderByTokenId = async (token_address, tokdnId) => {
-  let results = [];
-  let progress = true;
-  let cursor = "";
-  const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
-  while(progress) {
-      
-      const options = { chain: chain, address: token_address, cursor: cursor, token_id : tokdnId.toString() };
-      const nfts = await Moralis.Web3API.token.getNFTOwners(options);
-      await Promise.all(nfts.result.map(result => {
-          results.push({
-              address: result.owner_of,
-              token_id: result.token_id,
-              quantity: result.amount
-          })
-      }))
-      if(nfts.total < (nfts.page + 1) * nfts.page_size){
-          progress = false;
-      }
-      else {
-        cursor = nfts.cursor;
-      }
-  }
-  return results;
 }
 
 // Get Snapshot as JSON
@@ -286,6 +149,7 @@ const getRklSnapshotData = async (request, response) => {
 
 module.exports = {
     getSnapshot,
+    getCommunitySnapshot,
     getIntelSnapshotDrop1,
     getIntelSnapshotDrop2,
     getIntelSnapshotDrop3,

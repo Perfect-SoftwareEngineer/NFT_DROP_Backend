@@ -4,6 +4,7 @@ const keccak256 = require("keccak256");
 const { utils, BigNumber } = require("ethers");
 var {freeBBModel} = require('../Model/FreeBBModel')
 const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
+const {curryV2CommunitySnapshotModel} = require('../Model/CurryV2CommunitySnapshotModel');
 
 const initMerkleSingle = async (gameId) => {
     whitelist = await freeBBModel.find({game_id : gameId});
@@ -65,11 +66,40 @@ const getGCFHexProof = async (request, response) => {
             hexProof: hexProof
         });
     }
-    
+}
+
+const getCommunityRoot = async (request, response) => {
+    const communityData = await curryV2CommunitySnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(communityData);
+    const rootHash = merkleTree.getHexRoot();
+    return response.status(HttpStatusCodes.OK).send(rootHash);
+}
+
+
+const getCommunityHexProof = async (request, response) => {
+    const {wallet} = request.params;
+    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase()});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.OK).send({
+            quantity: 0,
+            hexProof: []
+        });
+    } else {
+        const communityData = await curryV2CommunitySnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(communityData);
+        const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
+        const hexProof = merkleTree.getHexProof(claimingAddress);
+        return response.status(HttpStatusCodes.OK).send({
+            quantity: parseInt(userData[0]['quantity']),
+            hexProof: hexProof
+        });
+    }
 }
 module.exports = {
     getBBRoot,
     getGCFRoot,
+    getCommunityRoot,
     getBBHexProof,
-    getGCFHexProof
+    getGCFHexProof,
+    getCommunityHexProof
 }

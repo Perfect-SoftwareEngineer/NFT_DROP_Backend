@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {upload} = require('../Controller/S3Controller')
+var {upload} = require('../Service/S3Service')
 require("dotenv").config();
 
 

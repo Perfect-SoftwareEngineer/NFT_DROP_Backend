@@ -1,6 +1,6 @@
 let mongoose = require('mongoose')
 
-let curryV2GCFSnapshotSchema = new mongoose.Schema({
+let curryV2CommunitySnapshotSchema = new mongoose.Schema({
     address : {
         type : String,
         unique : true,
@@ -15,5 +15,5 @@ let curryV2GCFSnapshotSchema = new mongoose.Schema({
   });
 
 module.exports = {
-    curryV2GCFSnapshotModel : mongoose.model('curryv2_gcf_snapshot', curryV2GCFSnapshotSchema)
+    curryV2CommunitySnapshotModel : mongoose.model('curryv2_community_snapshot', curryV2CommunitySnapshotSchema)
 }
