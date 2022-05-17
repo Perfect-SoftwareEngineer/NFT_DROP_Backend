@@ -6,7 +6,6 @@ require("dotenv").config();
 
 
 module.exports =function MiddlewareAuth(request, response, next) {
-  console.log(request)
   const token = request.header('Authorization');
   if (!token) {
     return response.status(HttpStatusCodes.UNAUTHORIZED).send('UnAuthorized, no token');
@@ -14,7 +13,7 @@ module.exports =function MiddlewareAuth(request, response, next) {
   // Verify token
   try {
     const user = jwt.verify(token, process.env.jwtSecret);
-    request.email = user.email;
+    request.wallet = user.wallet;
     next();
   } catch (error) {
     response.status(HttpStatusCodes.UNAUTHORIZED).send('Invalid Token');

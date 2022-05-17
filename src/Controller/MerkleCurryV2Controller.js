@@ -50,7 +50,7 @@ const getGCFRoot = async (request, response) => {
 
 const getGCFHexProof = async (request, response) => {
     const {wallet} = request.params;
-    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase()});
+    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({
             quantity: 0,
@@ -68,6 +68,21 @@ const getGCFHexProof = async (request, response) => {
     }
 }
 
+const gcfClaim = async (request, response) => {
+    const {wallet} = request.body;
+    if(wallet != request.wallet) {
+        return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
+    }
+    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.BAD_REQUEST).send("no data");
+    } else {
+        userData[0]['claimed'] = true;
+        await userData[0].save();
+        return response.status(HttpStatusCodes.OK).send("Success");
+    }
+}
+
 const getCommunityRoot = async (request, response) => {
     const communityData = await curryV2CommunitySnapshotModel.find({});
     const merkleTree = await initMerkleMultiple(communityData);
@@ -78,7 +93,7 @@ const getCommunityRoot = async (request, response) => {
 
 const getCommunityHexProof = async (request, response) => {
     const {wallet} = request.params;
-    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase()});
+    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({
             quantity: 0,
@@ -95,11 +110,28 @@ const getCommunityHexProof = async (request, response) => {
         });
     }
 }
+
+const communityClaim = async (request, response) => {
+    const {wallet} = request.body;
+    if(wallet != request.wallet) {
+        return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
+    }
+    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.BAD_REQUEST).send("no data");
+    } else {
+        userData[0]['claimed'] = true;
+        await userData[0].save();
+        return response.status(HttpStatusCodes.OK).send("Success");
+    }
+}
 module.exports = {
     getBBRoot,
     getGCFRoot,
     getCommunityRoot,
     getBBHexProof,
     getGCFHexProof,
-    getCommunityHexProof
+    getCommunityHexProof,
+    gcfClaim,
+    communityClaim
 }

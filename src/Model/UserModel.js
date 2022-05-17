@@ -8,8 +8,11 @@ let userSchema = new mongoose.Schema({
     },
     signature : {
         type : String,
+    },
+    nonce : {
+        type : Number,
         require : true,
-        require : true,
+        default : Math.floor(Math.random() * 1000000)
     },
     role : {
         type: String,

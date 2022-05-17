@@ -17,6 +17,7 @@ var RouterMetadataIntel = require('./src/Router/MetadataIntel');
 var RouterMetadataBB = require('./src/Router/MetadataBB');
 
 var RouterAuth = require('./src/Router/Auth');
+var RouterUser = require('./src/Router/User');
 var RouterImage = require('./src/Router/Image');
 var RouterCurry = require('./src/Router/Curry');
 
@@ -85,6 +86,7 @@ app.use('/api/metadata/intel', RouterMetadataIntel);
 app.use('/api/metadata/basketball', RouterMetadataBB);
 app.use('/api/curryv2/free/basketball', RouterFreeBB);
 app.use('/api/auth', RouterAuth);
+app.use('/api/user', RouterUser);
 app.use('/api/image', RouterImage);
 app.use('/api/curry', RouterCurry);
 app.use('/api/locker', RouterLocker);

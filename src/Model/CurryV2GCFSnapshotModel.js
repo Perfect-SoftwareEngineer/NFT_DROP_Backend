@@ -9,6 +9,11 @@ let curryV2GCFSnapshotSchema = new mongoose.Schema({
     quantity : {
         type : String,
         require : true
+    },
+    claimed : {
+        type: Boolean,
+        require : true,
+        default: false  
     }
   },{
       timestamps : true,
