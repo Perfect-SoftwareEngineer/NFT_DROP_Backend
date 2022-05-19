@@ -80,7 +80,9 @@ const get = async (request, response) => {
   try {
     const { wallet } = request.params;
     const user = await userModel.find({ wallet: wallet.toLowerCase() });
-
+    if(user.length == 0) {
+      return response.status(HttpStatusCodes.OK).send({});  
+    }
     return response.status(HttpStatusCodes.OK).send(user[0]);
   } catch (err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);

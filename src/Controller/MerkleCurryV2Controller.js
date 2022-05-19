@@ -70,7 +70,7 @@ const getGCFHexProof = async (request, response) => {
 
 const gcfClaim = async (request, response) => {
     const {wallet} = request.body;
-    if(wallet != request.wallet) {
+    if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
     }
     const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
@@ -113,7 +113,7 @@ const getCommunityHexProof = async (request, response) => {
 
 const communityClaim = async (request, response) => {
     const {wallet} = request.body;
-    if(wallet != request.wallet) {
+    if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
     }
     const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
