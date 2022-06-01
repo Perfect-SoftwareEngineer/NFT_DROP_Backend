@@ -4,8 +4,8 @@ const { Moralis }  = require('./MoralisService');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
-const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
-const {curryV2CommunitySnapshotModel} = require('../Model/CurryV2CommunitySnapshotModel');
+const {bbGCFSnapshotModel} = require('../Model/BbGCFSnapshotModel');
+const {bbCommunitySnapshotModel} = require('../Model/BbCommunitySnapshotModel');
 var { upload } = require('./S3Service')
 
 require("dotenv").config();
@@ -44,11 +44,11 @@ const getHolderData = async (response) => {
             return value
           }
         })
-        await curryV2GCFSnapshotModel.deleteMany({});
+        await bbGCFSnapshotModel.deleteMany({});
 
         results.map(async (list) => {
           try{
-              const data = new curryV2GCFSnapshotModel({
+              const data = new bbGCFSnapshotModel({
                   address : list.address,
                   quantity : list.quantity
               })
@@ -105,11 +105,11 @@ const getCommunityHolderData = async (response) => {
           return value
         }
       })
-      await curryV2CommunitySnapshotModel.deleteMany({});
+      await bbCommunitySnapshotModel.deleteMany({});
 
       results.map(async (list) => {
         try{
-            const data = new curryV2CommunitySnapshotModel({
+            const data = new bbCommunitySnapshotModel({
                 address : list.address,
                 quantity : list.quantity
             })

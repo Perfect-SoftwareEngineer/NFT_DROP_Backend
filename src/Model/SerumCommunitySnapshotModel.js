@@ -1,10 +1,14 @@
 let mongoose = require('mongoose')
 
-let curryV2CommunitySnapshotSchema = new mongoose.Schema({
+let serumCommunitySnapshotSchema = new mongoose.Schema({
     address : {
         type : String,
         unique : true,
         require : true,
+    },
+    token_id : {
+        type : String,
+        require : true
     },
     quantity : {
         type : String,
@@ -20,5 +24,5 @@ let curryV2CommunitySnapshotSchema = new mongoose.Schema({
   });
 
 module.exports = {
-    curryV2CommunitySnapshotModel : mongoose.model('curryv2_community_snapshot', curryV2CommunitySnapshotSchema)
+    serumCommunitySnapshotModel : mongoose.model('serum_community_snapshot', serumCommunitySnapshotSchema)
 }

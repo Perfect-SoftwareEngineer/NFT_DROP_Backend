@@ -15,6 +15,7 @@ var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterMetadataGala = require('./src/Router/MetadataGala');
 var RouterMetadataIntel = require('./src/Router/MetadataIntel');
 var RouterMetadataBB = require('./src/Router/MetadataBB');
+var RouterMetadataSerum = require('./src/Router/MetadataSerum');
 
 var RouterAuth = require('./src/Router/Auth');
 var RouterUser = require('./src/Router/User');
@@ -84,6 +85,7 @@ app.use('/api/metadata/drop3', RouterMetadataD3);
 app.use('/api/metadata/gala', RouterMetadataGala);
 app.use('/api/metadata/intel', RouterMetadataIntel);
 app.use('/api/metadata/basketball', RouterMetadataBB);
+app.use('/api/metadata/serum', RouterMetadataSerum);
 app.use('/api/curryv2/free/basketball', RouterFreeBB);
 app.use('/api/auth', RouterAuth);
 app.use('/api/user', RouterUser);

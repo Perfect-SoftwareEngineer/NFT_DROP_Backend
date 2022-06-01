@@ -34,11 +34,12 @@ async function airdrop(snapshots) {
   const [from] = await web3.eth.getAccounts();
   const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
   const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+  console.log(contract.methods)
   const failList = [];
   try{
     for(let i =  0; i < snapshots.length; i ++) {
       try{
-        contract.methods.safeTransferFrom(process.env.ADMIN_WALLET, snapshots[i].address, 1, snapshots[i].quantity, "0x").send()
+        contract.methods.safeTransferFrom(process.env.ADMIN_WALLET , snapshots[i].address, 1, snapshots[i].quantity, "0x").send()
         .then(tx=>console.log(tx))
         .catch(err => {
           console.log(err)

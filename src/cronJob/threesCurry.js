@@ -3,7 +3,7 @@ const { DefenderRelayProvider } = require('defender-relay-client/lib/web3');
 const Web3 = require('web3');
 const cron = require("node-cron");
 
-const {getBBRoot} = require('../Controller/MerkleCurryV2Controller');
+const {getBbRoot} = require('../Controller/MerkleCurryV2Controller');
 const { threesCurryModel } = require("../Model/ThreesCurryModel");
 const { currentWarriorsMatchModel } = require("../Model/CurrentWarriorsMatchModel");
 const { freeBBModel } = require("../Model/FreeBBModel");
@@ -164,7 +164,7 @@ const removeTpmMatchJob = async (gameId) => {
 }
 
 const setMerkleRoot = async (gameId) => {
-  const rootKey = await getBBRoot(gameId);
+  const rootKey = await getBbRoot(gameId);
   const matches = await currentWarriorsMatchModel.find({live : false, game_id: gameId}).limit(1);
   if(matches.length > 0) {
     matches[0]['merkled'] = true;

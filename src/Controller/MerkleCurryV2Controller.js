@@ -3,8 +3,10 @@ const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
 const { utils, BigNumber } = require("ethers");
 var {freeBBModel} = require('../Model/FreeBBModel')
-const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
-const {curryV2CommunitySnapshotModel} = require('../Model/CurryV2CommunitySnapshotModel');
+const {bbGCFSnapshotModel} = require('../Model/BbGCFSnapshotModel');
+const {bbCommunitySnapshotModel} = require('../Model/BbCommunitySnapshotModel');
+const {serumGCFSnapshotModel} = require('../Model/SerumGCFSnapshotModel');
+const {serumCommunitySnapshotModel} = require('../Model/SerumCommunitySnapshotModel');
 
 const initMerkleSingle = async (gameId) => {
     whitelist = await freeBBModel.find({game_id : gameId});
@@ -18,21 +20,28 @@ const initMerkleSingle = async (gameId) => {
     return merkleTree;
 }
 
-const initMerkleMultiple = async (data) => {
-    const leafNodes = await data.map((node) => {
-        return utils.solidityKeccak256( ["address", "uint"], [node['address'], parseInt(node['quantity'])]);
-    });
+const initMerkleMultiple = async (data, nft) => {
+    let leafNodes;
+    if(nft == 'Basketball') {
+        leafNodes = await data.map((node) => {
+            return utils.solidityKeccak256( ["address", "uint"], [node['address'], parseInt(node['quantity'])]);
+        });
+    } else {
+        leafNodes = await data.map((node) => {
+            return utils.solidityKeccak256( ["address", "uint", "uint"], [node['address'], parseInt(node['token_id']), parseInt(node['quantity'])]);
+        });
+    }
     const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
     return merkleTree;
 }
 
-const getBBRoot = async (gameId) => {
+const getBbRoot = async (gameId) => {
     const merkleTree = await initMerkleSingle(gameId);
     const rootHash = merkleTree.getHexRoot();
     return rootHash;
 }
 
-const getBBHexProof = async (request, response) => {
+const getBbHexProof = async (request, response) => {
     const {gameId, wallet} = request.params;
     const merkleTree = await initMerkleSingle(gameId);
     const claimingAddress = keccak256(wallet);
@@ -40,25 +49,25 @@ const getBBHexProof = async (request, response) => {
     return response.status(HttpStatusCodes.OK).send(hexProof);
 }
 
-const getGCFRoot = async (request, response) => {
-    const gcfData = await curryV2GCFSnapshotModel.find({});
-    const merkleTree = await initMerkleMultiple(gcfData);
+const getBbGCFRoot = async (request, response) => {
+    const gcfData = await bbGCFSnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(gcfData, "Basketball");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
 }
 
 
-const getGCFHexProof = async (request, response) => {
+const getBbGCFHexProof = async (request, response) => {
     const {wallet} = request.params;
-    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    const userData = await bbGCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({
             quantity: 0,
             hexProof: []
         });
     } else {
-        const gcfData = await curryV2GCFSnapshotModel.find({});
-        const merkleTree = await initMerkleMultiple(gcfData);
+        const gcfData = await bbGCFSnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(gcfData, "Basketball");
         const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
         const hexProof = merkleTree.getHexProof(claimingAddress);
         return response.status(HttpStatusCodes.OK).send({
@@ -68,12 +77,12 @@ const getGCFHexProof = async (request, response) => {
     }
 }
 
-const gcfClaim = async (request, response) => {
+const bbGcfClaim = async (request, response) => {
     const {wallet} = request.body;
     if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
     }
-    const userData = await curryV2GCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    const userData = await bbGCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("no data");
     } else {
@@ -83,25 +92,25 @@ const gcfClaim = async (request, response) => {
     }
 }
 
-const getCommunityRoot = async (request, response) => {
-    const communityData = await curryV2CommunitySnapshotModel.find({});
-    const merkleTree = await initMerkleMultiple(communityData);
+const getBbCommunityRoot = async (request, response) => {
+    const communityData = await bbCommunitySnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(communityData, "Basketball");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
 }
 
 
-const getCommunityHexProof = async (request, response) => {
+const getBbCommunityHexProof = async (request, response) => {
     const {wallet} = request.params;
-    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    const userData = await bbCommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({
             quantity: 0,
             hexProof: []
         });
     } else {
-        const communityData = await curryV2CommunitySnapshotModel.find({});
-        const merkleTree = await initMerkleMultiple(communityData);
+        const communityData = await bbCommunitySnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(communityData, "Basketball");
         const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
         const hexProof = merkleTree.getHexProof(claimingAddress);
         return response.status(HttpStatusCodes.OK).send({
@@ -111,12 +120,12 @@ const getCommunityHexProof = async (request, response) => {
     }
 }
 
-const communityClaim = async (request, response) => {
+const bbCommunityClaim = async (request, response) => {
     const {wallet} = request.body;
     if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
     }
-    const userData = await curryV2CommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    const userData = await bbCommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.BAD_REQUEST).send("no data");
     } else {
@@ -125,13 +134,78 @@ const communityClaim = async (request, response) => {
         return response.status(HttpStatusCodes.OK).send("Success");
     }
 }
+
+const getSerumGCFRoot = async (request, response) => {
+    const gcfData = await serumGCFSnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(gcfData, "Serum");
+    const rootHash = merkleTree.getHexRoot();
+    return response.status(HttpStatusCodes.OK).send(rootHash);
+}
+
+
+const getSerumGCFHexProof = async (request, response) => {
+    const {wallet} = request.params;
+    const userData = await serumGCFSnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.OK).send({});
+    } else {
+        const gcfData = await serumGCFSnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(gcfData, "Serum");
+        const result = {};
+        userData.map(data => {
+            const claimingAddress = utils.solidityKeccak256(["address", "uint", "uint"],[data['address'], parseInt(data['token_id']), parseInt(data['quantity'])]);
+            const hexProof = merkleTree.getHexProof(claimingAddress);
+            result[parseInt(data['token_id'])] = {
+                quantity: parseInt(data['quantity']),
+                hexProof: hexProof
+            }
+        })
+        
+        return response.status(HttpStatusCodes.OK).send(result);
+    }
+}
+
+const getSerumCommunityRoot = async (request, response) => {
+    const communityData = await serumCommunitySnapshotModel.find({});
+    const merkleTree = await initMerkleMultiple(communityData, "Serum");
+    const rootHash = merkleTree.getHexRoot();
+    return response.status(HttpStatusCodes.OK).send(rootHash);
+}
+
+
+const getSerumCommunityHexProof = async (request, response) => {
+    const {wallet} = request.params;
+    const userData = await serumCommunitySnapshotModel.find({address: wallet.toLowerCase(), claimed: false});
+    if(userData.length == 0) {
+        return response.status(HttpStatusCodes.OK).send({});
+    } else {
+        const communityData = await serumCommunitySnapshotModel.find({});
+        const merkleTree = await initMerkleMultiple(communityData, "Serum");
+        const result = {};
+        userData.map(data => {
+            const claimingAddress = utils.solidityKeccak256(["address", "uint", "uint"],[data['address'], parseInt(data['token_id']), parseInt(data['quantity'])]);
+            const hexProof = merkleTree.getHexProof(claimingAddress);
+            result[parseInt(data['token_id'])] = {
+                quantity: parseInt(data['quantity']),
+                hexProof: hexProof
+            }
+        })
+        
+        return response.status(HttpStatusCodes.OK).send(result);
+    }
+}
+
 module.exports = {
-    getBBRoot,
-    getGCFRoot,
-    getCommunityRoot,
-    getBBHexProof,
-    getGCFHexProof,
-    getCommunityHexProof,
-    gcfClaim,
-    communityClaim
+    getBbRoot,
+    getBbGCFRoot,
+    getBbCommunityRoot,
+    getBbHexProof,
+    getBbGCFHexProof,
+    getBbCommunityHexProof,
+    bbGcfClaim,
+    bbCommunityClaim,
+    getSerumGCFRoot,
+    getSerumCommunityRoot,
+    getSerumGCFHexProof,
+    getSerumCommunityHexProof,
 }

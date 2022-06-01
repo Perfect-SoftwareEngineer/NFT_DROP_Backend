@@ -19,7 +19,6 @@ Moralis.start({ serverUrl, appId });
 const connectDB = async () => {
   try {
     console.log(`Database connecting to ${process.env.NODE_ENV} environment.`);
-    const production = process.env.NODE_ENV === 'production';
     const options = {
       useNewUrlParser: true,
       useCreateIndex: true,
@@ -28,7 +27,7 @@ const connectDB = async () => {
     };
     
     await connect(
-      production ? process.env.MONGODB_PROD_URI : process.env.MONGODB_DEV_URI,
+      process.env.MONGODB_PROD_URI,
       options,
     );
     console.log('MongoDB connected!');
@@ -79,7 +78,7 @@ const getHolderByTokenId = async (network, token_address, tokdnId) => {
 const main = async ()=> {
     try {
         await connectDB();
-        let result = await getHolderByTokenId(1, process.env.BBH_ADDRESS, 1);
+        let result = await getHolderByTokenId(1, '0xC57C94346b466bED19438c195ad78CAdC7D09473', 1);
         const unClaimed = await freeBBModel.find({claimed: false});
         const unClaimedData = unClaimed.map(object => ({address: object.wallet, quantity: 1}))
         result = result.concat(unClaimedData);
@@ -110,6 +109,7 @@ const main = async ()=> {
           ]
         });
         await csvWriter.writeRecords(result);
+        console.log(`done, total amount is ${totalAmount}`)
         await disconnectDB();
 
     } catch(e) {

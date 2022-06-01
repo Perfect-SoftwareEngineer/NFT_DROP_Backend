@@ -7,7 +7,6 @@ const { snapshotModel } = require('./../Model/1226Snapshot');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
-const {curryV2GCFSnapshotModel} = require('../Model/CurryV2GCFSnapshotModel');
 const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
 const { upload } = require('../Service/S3Service');
 const {getHolderData, getCommunityHolderData, getIntelHolderData} = require('../Service/SnapshotService');
