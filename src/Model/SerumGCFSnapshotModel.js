@@ -7,7 +7,7 @@ let serumGCFSnapshotSchema = new mongoose.Schema({
         require : true,
     },
     token_id : {
-        tyep : String,
+        type : String,
         require : true
     },
     quantity : {
