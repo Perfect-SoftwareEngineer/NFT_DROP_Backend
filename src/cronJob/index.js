@@ -3,7 +3,7 @@ const { runLiveMatchJob } = require("./threesCurry");
 
 const cronJob = () => {
   
-  cron.schedule("*/3 * * * *", () => {
+  cron.schedule("*/1 * * * *", () => {
     runLiveMatchJob()
   });
 };

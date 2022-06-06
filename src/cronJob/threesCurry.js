@@ -43,20 +43,23 @@ const getLiveMatch = (cb) => {
         oppositeTeam: ''
       }
       if(data.response.length > 0) {
-        
-        for(let i = 0; i < data.response.length ; i ++) {
-          const match = data.response[i];
-          if(match.teams.visitors.id == 11) 
-            currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.home.name};
-          else if (match.teams.home.id ==11)
-            currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.visitors.name};
+        if(data.response[0].id == 10977){
+          currentMatch = {gameId: 10977, season: 0, oppositeTeam: 'Boston Celtics'};
         }
+        // console.log(data.response[0].teams)
+        // for(let i = 0; i < data.response.length ; i ++) {
+        //   const match = data.response[i];
+        //   if(match.teams.visitors.id == 11) 
+        //     currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.home.name};
+        //   else if (match.teams.home.id ==11)
+        //     currentMatch = {gameId: match.id, season: match.season, oppositeTeam: match.teams.visitors.name};
+        // }
       }
       console.log(currentMatch)
       cb(currentMatch.gameId, currentMatch.season, currentMatch.oppositeTeam)
     })
     .catch((err) => {
-      // console.log(err)
+      console.log(err)
     })
 }
 
