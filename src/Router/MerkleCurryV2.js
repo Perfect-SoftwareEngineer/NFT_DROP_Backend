@@ -3,31 +3,31 @@ var router = express.Router();
 var {getBbHexProof, getBbGCFRoot, getBbCommunityRoot, getBbGCFHexProof, getBbCommunityHexProof, bbGcfClaim, bbCommunityClaim} = require('../Controller/MerkleCurryV2Controller');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
-router.get('/hex_proof/:gameId/:wallet', async(request, response) => {
+router.get('/basketball/hex_proof/:gameId/:wallet', async(request, response) => {
     getBbHexProof(request, response);
 });
 
-router.get('/bb/gcf/hex_proof/:wallet', async(request, response) => {
+router.get('/basketball/gcf/hex_proof/:wallet', async(request, response) => {
     getBbGCFHexProof(request, response);
 });
 
-router.get('/bb/gcf/root', async(request, response) => {
+router.get('/basketball/gcf/root', async(request, response) => {
     getBbGCFRoot(request, response);
 });
 
-router.post('/bb/gcf/claim', MiddlewareAuth, async(request, response) => {
+router.post('/basketball/gcf/claim', MiddlewareAuth, async(request, response) => {
     bbGcfClaim(request, response);
 });
 
-router.get('/bb/community/hex_proof/:wallet', async(request, response) => {
+router.get('/basketball/community/hex_proof/:wallet', async(request, response) => {
     getBbCommunityHexProof(request, response);
 });
 
-router.get('/bb/community/root', async(request, response) => {
+router.get('/basketball/community/root', async(request, response) => {
     getBbCommunityRoot(request, response);
 });
 
-router.post('/bb/community/claim', MiddlewareAuth, async(request, response) => {
+router.post('/basketball/community/claim', MiddlewareAuth, async(request, response) => {
     bbCommunityClaim(request, response);
 });
 

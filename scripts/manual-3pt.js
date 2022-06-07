@@ -88,28 +88,37 @@ const getBbRoot = async (gameId) => {
 }
 
 async function setRootKey(gameId, rootKey, amount) {
-    const credentials = { apiKey: process.env.OZ_DEFENDER_API_KEY, apiSecret: process.env.OZ_DEFENDER_SECRET_KEY };
-    const provider = new DefenderRelayProvider(credentials, { speed: 'fast' });
-    const web3 = new Web3(provider);
-    
-    const [from] = await web3.eth.getAccounts();
+
     const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+    const network = process.env.NODE_ENV === 'production' ? 'mainnet' : 'rinkeby';
+
+    const web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${process.env.INFURA_KEY}`));
+    web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY)
+    const from = web3.eth.accounts.wallet[0].address;
     const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+
     try{
-      await contract.methods.setGameRootKey(gameId, rootKey, amount).send();
+      const gasLimit = await contract.methods.setGameRootKey(gameId, rootKey, amount).estimateGas();
+      await contract.methods.setGameRootKey(gameId, rootKey, amount).send({gasLimit: gasLimit});
+      return true;
     } catch(err) {
       console.log({err})
+      return false;
     }
 }
 
 const setMerkleRoot = async (gameId) => {
     const rootKey = await getBbRoot(gameId);
-    const matches = await currentWarriorsMatchModel.find({live : false, game_id: gameId}).limit(1);
+    const matches = await currentWarriorsMatchModel.find({game_id: gameId}).limit(1);
     if(matches.length > 0) {
-      matches[0]['merkled'] = true;
-      await matches[0].save();
-      console.log(gameId, rootKey, matches[0]['tpm'] * 9)
-      await setRootKey(gameId, rootKey, matches[0]['tpm'] * 9);
+        console.log(gameId, rootKey, matches[0]['tpm'] * 9)
+        const succeed = await setRootKey(gameId, rootKey, matches[0]['tpm'] * 9);
+        console.log('succeed', succeed)
+        if(succeed) {
+            matches[0]['live'] = false;
+            matches[0]['merkled'] = true;
+            await matches[0].save();
+        }
     }
 }
 
@@ -208,8 +217,6 @@ const endMatch = async () => {
     try{
         const matches = await currentWarriorsMatchModel.find().sort({updatedAt: -1}).limit(1);
         if(matches.length > 0 && matches[0].live) {
-            matches[0].live = false;
-            await matches[0].save();
             // TODO - stop queue && make merkle tree
             await setMerkleRoot(matches[0]['game_id'])
         } else {

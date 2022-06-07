@@ -8,8 +8,6 @@ var fileupload = require('express-fileupload');
 var swaggerUI = require('swagger-ui-express');
 var swaggerJsDoc = require('swagger-jsdoc');
 
-var {connectDB} = require('./src/config/dbconnect');
-
 var RouterMetadataD1 = require('./src/Router/MetadataD1');
 var RouterMetadataD3 = require('./src/Router/MetadataD3');
 var RouterMetadataGala = require('./src/Router/MetadataGala');
@@ -33,8 +31,6 @@ var RouterMerkleCurryV2 = require('./src/Router/MerkleCurryV2');
 
 var RouterFreeBB = require('./src/Router/FreeBB');
 var RouterCurrentMatch = require('./src/Router/CurrentMatch')
-var cronJob = require('./src/cronJob');
-var {getWhitelist, setMockWhitelist} = require('./src/cronJob/twitter');
 
 require("dotenv").config();
 
@@ -86,7 +82,6 @@ app.use('/api/metadata/gala', RouterMetadataGala);
 app.use('/api/metadata/intel', RouterMetadataIntel);
 app.use('/api/metadata/basketball', RouterMetadataBB);
 app.use('/api/metadata/serum', RouterMetadataSerum);
-app.use('/api/curryv2/free/basketball', RouterFreeBB);
 app.use('/api/auth', RouterAuth);
 app.use('/api/user', RouterUser);
 app.use('/api/image', RouterImage);
@@ -97,14 +92,10 @@ app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
 app.use('/api/snapshot', RouterSnapShot);
 app.use('/api/intel/merkle', RouterMerkleIntel);
+app.use('/api/curryv2/free/basketball', RouterFreeBB);
 app.use('/api/curryv2/merkle', RouterMerkleCurryV2);
 app.use('/api/curryv2/current/match', RouterCurrentMatch);
 //swagger doc
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
-
-// cron job
-// if (process.env.NODE_ENV == 'production') {
-    // cronJob();
-// }
 
 module.exports = app;
