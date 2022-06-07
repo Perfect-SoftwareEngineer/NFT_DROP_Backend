@@ -1,12 +1,17 @@
 
 const { connect, disconnect } = require('mongoose');
-var log4js = require("log4js");
+const log4js = require("log4js");
 const { TwitterApi } = require('twitter-api-v2');
+const { MerkleTree } = require("merkletreejs");
+const keccak256 = require("keccak256");
+const { DefenderRelayProvider } = require('defender-relay-client/lib/web3');
+const Web3 = require('web3');
 
 const dotenv = require('dotenv');
 
 const { currentWarriorsMatchModel } = require("../src/Model/CurrentWarriorsMatchModel");
 const { freeBBModel } = require("../src/Model/FreeBBModel");
+const BBHABI = require('../src/config/ABI/BasketBallHead');
 
 dotenv.config({ path: './../.env'});
 
@@ -63,6 +68,51 @@ const disconnectDB = async () => {
         process.exit(1);
     }
 }
+
+const initMerkleSingle = async (gameId) => {
+    whitelist = await freeBBModel.find({game_id : gameId});
+
+    const addresses = [];
+    whitelist.map(item => {
+        addresses.push(item.wallet);
+    })
+    const leafNodes = await addresses.map(addr => keccak256(addr));
+    const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true });
+    return merkleTree;
+}
+
+const getBbRoot = async (gameId) => {
+    const merkleTree = await initMerkleSingle(gameId);
+    const rootHash = merkleTree.getHexRoot();
+    return rootHash;
+}
+
+async function setRootKey(gameId, rootKey, amount) {
+    const credentials = { apiKey: process.env.OZ_DEFENDER_API_KEY, apiSecret: process.env.OZ_DEFENDER_SECRET_KEY };
+    const provider = new DefenderRelayProvider(credentials, { speed: 'fast' });
+    const web3 = new Web3(provider);
+    
+    const [from] = await web3.eth.getAccounts();
+    const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+    const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+    try{
+      await contract.methods.setGameRootKey(gameId, rootKey, amount).send();
+    } catch(err) {
+      console.log({err})
+    }
+}
+
+const setMerkleRoot = async (gameId) => {
+    const rootKey = await getBbRoot(gameId);
+    const matches = await currentWarriorsMatchModel.find({live : false, game_id: gameId}).limit(1);
+    if(matches.length > 0) {
+      matches[0]['merkled'] = true;
+      await matches[0].save();
+      console.log(gameId, rootKey, matches[0]['tpm'] * 9)
+      await setRootKey(gameId, rootKey, matches[0]['tpm'] * 9);
+    }
+}
+
 const getMatchDetail = async () => {
     await connectDB();
     const matches = await currentWarriorsMatchModel.find({live: true}).sort({updatedAt: -1}).limit(1);
@@ -117,12 +167,77 @@ const setTpm = async () => {
     // Close DB connection
     await disconnectDB();
 }
+
+const startMatch = async () => {
+    await connectDB();
+
+    var logger = log4js.getLogger();
+    logger.level = "all";
+    let gameId = 0;
+    try{
+        const matches = await currentWarriorsMatchModel.find().sort({updatedAt: -1}).limit(1);
+        if(matches.length > 0) {
+            if(matches[0].live)
+            {
+                logger.warn("live match exisit");
+                await disconnectDB();
+                return
+            } else {
+                gameId = matches[0].game_id + 1;
+            }
+        }
+        await currentWarriorsMatchModel.create({
+            game_id : gameId,
+            season: 0,
+            opposite_team: "_",
+            tpm: 0,
+            live: true
+        })
+        logger.info("done");
+        await disconnectDB();
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+const endMatch = async () => {
+    await connectDB();
+
+    var logger = log4js.getLogger();
+    logger.level = "all";
+    try{
+        const matches = await currentWarriorsMatchModel.find().sort({updatedAt: -1}).limit(1);
+        if(matches.length > 0 && matches[0].live) {
+            matches[0].live = false;
+            await matches[0].save();
+            // TODO - stop queue && make merkle tree
+            await setMerkleRoot(matches[0]['game_id'])
+        } else {
+            logger.warn("no live match");
+        }
+        logger.info("done");
+        await disconnectDB();
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 const main = () => {
     const args = process.argv;
-    if(args[2] == "info")
-        getMatchDetail();
-    else if(args[2] == "update")
-        setTpm();
+    switch(args[2].toLocaleLowerCase()) {
+        case "info":
+            getMatchDetail();
+            break;
+        case "update":
+            setTpm();
+            break;
+        case "start":
+            startMatch();
+            break;
+        case "end":
+            endMatch();
+            break;
+    }
 }
 
 

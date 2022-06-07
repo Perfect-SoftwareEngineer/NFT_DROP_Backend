@@ -104,7 +104,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
 // cron job
 // if (process.env.NODE_ENV == 'production') {
-    cronJob();
+    // cronJob();
 // }
 
 module.exports = app;
