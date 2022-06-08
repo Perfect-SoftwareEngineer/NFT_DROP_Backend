@@ -81,19 +81,20 @@ const getCommunityHolderData = async (response) => {
   try{
       
       let results = [];
-      const dgcfData = await getHolder(137, process.env.DGCF_ADDRESS);
-      results = results.concat(dgcfData);
+      // const dgcfData = await getHolder(137, process.env.DGCF_ADDRESS);
+      // results = results.concat(dgcfData);
+      // console.log(results.length)
+      // const rgcfData = await getHolder(1, process.env.RGCF_ADDRESS);
+      // results = results.concat(rgcfData);
+      // console.log(results.length)
 
       const sgcfTokenId = '55464657044963196816950587289035428064568320970692304673817341489688352917504'
       const sgcfData = await getHolderByTokenId(1, process.env.SGCF_ADDRESS, sgcfTokenId);
       results = results.concat(sgcfData);
-
-      const rgcfData = await getHolder(1, process.env.RGCF_ADDRESS);
-      results = results.concat(rgcfData);
-
+      
       const ggcfData = await getHolder(1, process.env.GGCF_ADDRESS);
       results = results.concat(ggcfData);
-
+      
       results = results.filter((value, index, self) =>{
         if(index === self.findIndex((t) => (t.address === value.address))){
           duplicate = self.filter((t) => t.address === value.address)
