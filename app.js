@@ -8,12 +8,7 @@ var fileupload = require('express-fileupload');
 var swaggerUI = require('swagger-ui-express');
 var swaggerJsDoc = require('swagger-jsdoc');
 
-var RouterMetadataD1 = require('./src/Router/MetadataD1');
-var RouterMetadataD3 = require('./src/Router/MetadataD3');
-var RouterMetadataGala = require('./src/Router/MetadataGala');
-var RouterMetadataIntel = require('./src/Router/MetadataIntel');
-var RouterMetadataBB = require('./src/Router/MetadataBB');
-var RouterMetadataSerum = require('./src/Router/MetadataSerum');
+var RouterMetadata = require('./src/Router/Metadata');
 
 var RouterAuth = require('./src/Router/Auth');
 var RouterUser = require('./src/Router/User');
@@ -27,10 +22,8 @@ var RouterPaymentInfo = require('./src/Router/PaymentInfo');
 var RouterSnapShot = require('./src/Router/SnapShot');
 
 var RouterMerkleIntel = require('./src/Router/MerkleIntel');
-var RouterMerkleCurryV2 = require('./src/Router/MerkleCurryV2');
 
-var RouterFreeBB = require('./src/Router/FreeBB');
-var RouterCurrentMatch = require('./src/Router/CurrentMatch')
+var RouterCurryV2 = require('./src/Router/CurryV2')
 
 require("dotenv").config();
 
@@ -76,12 +69,7 @@ app.get('/', (req, res)=> {
 
 
 //connect Router
-app.use('/api/metadata/drop1', RouterMetadataD1);
-app.use('/api/metadata/drop3', RouterMetadataD3);
-app.use('/api/metadata/gala', RouterMetadataGala);
-app.use('/api/metadata/intel', RouterMetadataIntel);
-app.use('/api/metadata/basketball', RouterMetadataBB);
-app.use('/api/metadata/serum', RouterMetadataSerum);
+app.use('/api/metadata', RouterMetadata);
 app.use('/api/auth', RouterAuth);
 app.use('/api/user', RouterUser);
 app.use('/api/image', RouterImage);
@@ -92,9 +80,7 @@ app.use('/api/stripe', RouterStripe);
 app.use('/api/paymentinfo', RouterPaymentInfo);
 app.use('/api/snapshot', RouterSnapShot);
 app.use('/api/intel/merkle', RouterMerkleIntel);
-app.use('/api/curryv2/free/basketball', RouterFreeBB);
-app.use('/api/curryv2/merkle', RouterMerkleCurryV2);
-app.use('/api/curryv2/current/match', RouterCurrentMatch);
+app.use('/api/curryv2', RouterCurryV2);
 //swagger doc
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
