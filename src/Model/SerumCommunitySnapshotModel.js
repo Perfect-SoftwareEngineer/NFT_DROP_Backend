@@ -3,7 +3,6 @@ let mongoose = require('mongoose')
 let serumCommunitySnapshotSchema = new mongoose.Schema({
     address : {
         type : String,
-        unique : true,
         require : true,
     },
     token_id : {

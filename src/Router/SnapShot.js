@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { getSnapshot, getCommunitySnapshot, getRklSnapshot, getIntelSnapshotDrop1, getIntelSnapshotDrop2, getIntelSnapshotDrop3, getIntelSnapshotList, get1226Snapshot, get1226SnapshotIndividual, updateSnapshotClaim } = require("../Controller/SnapShotController");
+const { setBbSnapshot, setBbCommunitySnapshot, setSerumSnapshot, setSerumCommunitySnapshot, getRklSnapshot, setIntelSnapshotDrop1, setIntelSnapshotDrop2, setIntelSnapshotDrop3, getIntelSnapshotList, get1226Snapshot, get1226SnapshotIndividual, updateSnapshotClaim } = require("../Controller/SnapShotController");
 
-router.get("/get/gcf", getSnapshot);
-router.get("/get/community", getCommunitySnapshot);
-router.get("/get/intel/drop1", getIntelSnapshotDrop1);
-router.get("/get/intel/drop2", getIntelSnapshotDrop2);
-router.get("/get/intel/drop3", getIntelSnapshotDrop3);
+router.get("/set/basketball/gcf",setBbSnapshot);
+router.get("/set/basketball/community",setBbCommunitySnapshot);
+router.get("/set/serum/gcf",setSerumSnapshot);
+router.post("/set/serum/community",setSerumCommunitySnapshot);
+router.get("/set/intel/drop1",setIntelSnapshotDrop1);
+router.get("/set/intel/drop2",setIntelSnapshotDrop2);
+router.get("/set/intel/drop3",setIntelSnapshotDrop3);
 router.get("/get/intel/list/:address", getIntelSnapshotList);
 router.get("/get/1226", get1226Snapshot);
 router.get("/get/1226/:address", get1226SnapshotIndividual);
