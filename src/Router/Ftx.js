@@ -1,10 +1,14 @@
 var express = require('express');
 var router = express.Router();
-var {get, save, set} = require('../Controller/FtxController');
+var {get, save, set, getStatus} = require('../Controller/FtxController');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
 router.get('/get/:wallet', async(request, response) => {
     get(request, response);
+});
+
+router.get('/get_status', async(request, response) => {
+    getStatus(request, response);
 });
 
 router.post('/save', MiddlewareAuth, async(request, response) => {

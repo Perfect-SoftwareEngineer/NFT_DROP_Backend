@@ -1,14 +1,27 @@
+var HttpStatusCodes = require('http-status-codes');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const fs = require('fs');
+const csvjson = require('csvjson');
 const { Moralis }  = require('./MoralisService');
 const {intelSnapshotDrop1Model} = require('../Model/IntelSnapshotDrop1Model');
 const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
 const {bbGCFSnapshotModel} = require('../Model/BbGCFSnapshotModel');
 const {bbCommunitySnapshotModel} = require('../Model/BbCommunitySnapshotModel');
+const {serumGCFSnapshotModel} = require('../Model/SerumGCFSnapshotModel');
+const {serumCommunitySnapshotModel} = require('../Model/SerumCommunitySnapshotModel');
 var { upload } = require('./S3Service')
 
 require("dotenv").config();
+
+const serumId = {
+  'Smilesss' : 6,
+  'ChibiDinos' : 7,
+  'Hape' : 8,
+  'CyberKongz' : 9,
+  'UnderArmour' : 10,
+  'CurryBrand' : 11
+}
 
 const getCurrentDate = () => {
   var today = new Date();
@@ -20,7 +33,7 @@ const getCurrentDate = () => {
   return today;
 }
 
-const getHolderData = async (response) => {
+const setBbHolderData = async (response) => {
     try{
         
         let results = [];
@@ -77,7 +90,55 @@ const getHolderData = async (response) => {
     }
 }
 
-const getCommunityHolderData = async (response) => {
+const setSerumHolderData = async (response) => {
+  try{
+      
+      let results = [];
+      const data = await getHolder(137, process.env.DROP1_ADDRESS);
+      results = results.concat(data);
+      //Remove duplicate object
+      results = results.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+              t.address === value.address && t.token_id === value.token_id
+          ))
+      )
+      
+      await serumGCFSnapshotModel.deleteMany({});
+
+      results.map(async (list) => {
+        try{
+            const data = new serumGCFSnapshotModel({
+                address : list.address,
+                quantity : list.quantity,
+                token_id : list.token_id
+            })
+            await data.save()
+        } catch(err) {}
+      })
+
+      const today = getCurrentDate();
+
+      const csvWriter = createCsvWriter({
+        path: `${today}-serum-snapshot.csv`,
+        header: [
+          {id: 'address', title: 'Address'},
+          {id: 'token_id', title: 'Token Id'},
+          {id: 'quantity', title: 'Quantity'}
+        ]
+      });
+      await csvWriter.writeRecords(results);
+      
+      const fileContent = fs.readFileSync(`${today}-serum-snapshot.csv`);
+      fs.unlinkSync(`${today}-serum-snapshot.csv`)
+      upload(fileContent, `${today}-serum-snapshot.csv`, 'text/csv', response);
+      return `${today}-serum-snapshot.csv`;
+  } catch(err) {
+      console.log(err)
+      return [];
+  }
+}
+
+const setBbCommunityHolderData = async (response) => {
   try{
       
       let results = [];
@@ -88,9 +149,9 @@ const getCommunityHolderData = async (response) => {
       // results = results.concat(rgcfData);
       // console.log(results.length)
 
-      const sgcfTokenId = '55464657044963196816950587289035428064568320970692304673817341489688352917504'
-      const sgcfData = await getHolderByTokenId(1, process.env.SGCF_ADDRESS, sgcfTokenId);
-      results = results.concat(sgcfData);
+      // const sgcfTokenId = '55464657044963196816950587289035428064568320970692304673817341489688352917504'
+      // const sgcfData = await getHolderByTokenId(1, process.env.SGCF_ADDRESS, sgcfTokenId);
+      // results = results.concat(sgcfData);
       
       const ggcfData = await getHolder(1, process.env.GGCF_ADDRESS);
       results = results.concat(ggcfData);
@@ -139,7 +200,32 @@ const getCommunityHolderData = async (response) => {
   }
 }
 
-const getIntelHolderData = async (drop, response) => {
+const setSerumCommunityHolderData = async(request, response) => {
+  const data = request.files.file.data;
+  const name = request.files.file.name.replace('.csv', '');
+  const tokenId = serumId[name];
+  if(!tokenId) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).send("invalid file");
+  }
+  const options = {
+    delimiter: ',', // optional
+    headers: 'address,quantity'
+  };
+
+  const lists = await csvjson.toObject(data.toString('utf8'), options);
+  lists.shift();
+  await Promise.all(lists.map(async (list) => {
+    const snapshot = new serumCommunitySnapshotModel({
+      address : list.address,
+      quantity : list.quantity,
+      token_id : tokenId
+    })
+    await snapshot.save();
+  }))
+  return response.status(HttpStatusCodes.OK).send("done");
+}
+
+const setIntelHolderData = async (drop, response) => {
     try{
         
         let results = [];
@@ -256,7 +342,9 @@ const getHolderByTokenId = async (network, token_address, tokdnId) => {
 
 
 module.exports = {
-  getHolderData,
-  getCommunityHolderData,
-  getIntelHolderData
+  setBbHolderData,
+  setSerumHolderData,
+  setBbCommunityHolderData,
+  setSerumCommunityHolderData,
+  setIntelHolderData
 }

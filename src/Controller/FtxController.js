@@ -2,6 +2,7 @@
 var HttpStatusCodes = require('http-status-codes');
 const csvjson = require('csvjson');
 var {ftxCodeModel} = require('../Model/FtxCodeModel')
+var {ftxStatusModel} = require('../Model/FtxStatusModel')
 const {bbCommunitySnapshotModel} = require('../Model/BbCommunitySnapshotModel'); 
 
 const get = async (request, response) => {
@@ -14,12 +15,31 @@ const get = async (request, response) => {
   }
 }
 
+const getStatus = async (request, response) => {
+  try{
+    const data = await ftxStatusModel.find().limit(1);
+    if(data.length == 0)
+      return response.status(HttpStatusCodes.OK).send(false);
+    else {
+      if(data[0].status)
+        return response.status(HttpStatusCodes.OK).send(true);
+      else
+        return response.status(HttpStatusCodes.OK).send(false);
+    }
+  } catch (err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send('Server Error');
+  }
+}
+
 const save = async (request, response) => {
   const {wallet, code} = request.body;
   if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
     return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
   }
   try{
+    const status = await ftxStatusModel.find().limit(1);
+    if(status.length == 0 || !status[0].status)
+      return response.status(HttpStatusCodes.BAD_REQUEST).send("ftx disabled");
     const data = await ftxCodeModel.find({ code: code.toLowerCase()});
     if(data.length == 0) {
       return response.status(HttpStatusCodes.BAD_REQUEST).send("Code invalid");
@@ -37,6 +57,7 @@ const save = async (request, response) => {
             quantity: 1
           })
           await snapshot.save();
+          console.log("jere")
         }
         else{
           snapshots[0]['quantity'] = parseInt(snapshots[0]['quantity']) + 1;
@@ -79,6 +100,7 @@ const set = async (request, response) => {
 
 module.exports = {
   get,
+  getStatus,
   save,
   set
 }
