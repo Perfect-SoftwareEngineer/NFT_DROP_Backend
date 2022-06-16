@@ -93,45 +93,25 @@ const setBbHolderData = async (response) => {
 const setSerumHolderData = async (response) => {
   try{
       
-      let results = [];
-      const data = await getHolder(137, process.env.DROP1_ADDRESS);
-      results = results.concat(data);
-      //Remove duplicate object
-      results = results.filter((value, index, self) =>
-          index === self.findIndex((t) => (
-              t.address === value.address && t.token_id === value.token_id
-          ))
-      )
-      
+      const data = request.files.file.data;
+      const options = {
+        delimiter: ',', // optional
+        headers: 'address,token_id,quantity'
+      };
+    
+      const lists = await csvjson.toObject(data.toString('utf8'), options);
+      lists.shift();
       await serumGCFSnapshotModel.deleteMany({});
 
-      results.map(async (list) => {
-        try{
-            const data = new serumGCFSnapshotModel({
-                address : list.address,
-                quantity : list.quantity,
-                token_id : list.token_id
-            })
-            await data.save()
-        } catch(err) {}
-      })
-
-      const today = getCurrentDate();
-
-      const csvWriter = createCsvWriter({
-        path: `${today}-serum-snapshot.csv`,
-        header: [
-          {id: 'address', title: 'Address'},
-          {id: 'token_id', title: 'Token Id'},
-          {id: 'quantity', title: 'Quantity'}
-        ]
-      });
-      await csvWriter.writeRecords(results);
-      
-      const fileContent = fs.readFileSync(`${today}-serum-snapshot.csv`);
-      fs.unlinkSync(`${today}-serum-snapshot.csv`)
-      upload(fileContent, `${today}-serum-snapshot.csv`, 'text/csv', response);
-      return `${today}-serum-snapshot.csv`;
+      await Promise.all(lists.map(async (list) => {
+        const data = new serumGCFSnapshotModel({
+          address : list.address,
+          quantity : list.quantity,
+          token_id : list.token_id
+        })
+        await data.save()
+      }))
+      return response.status(HttpStatusCodes.OK).send("done");
   } catch(err) {
       console.log(err)
       return [];
