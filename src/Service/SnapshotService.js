@@ -90,7 +90,7 @@ const setBbHolderData = async (response) => {
     }
 }
 
-const setSerumHolderData = async (response) => {
+const setSerumHolderData = async (request, response) => {
   try{
       
       const data = request.files.file.data;
