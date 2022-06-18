@@ -41,7 +41,7 @@ const setBbSnapshot = async (request, response) => {
 
 const setSerumSnapshot = async (request, response) => {
   try {
-    await setSerumHolderData(response);
+    await setSerumHolderData(request, response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }

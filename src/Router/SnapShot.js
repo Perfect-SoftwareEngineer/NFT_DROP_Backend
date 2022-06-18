@@ -4,7 +4,7 @@ const { setBbSnapshot, setBbCommunitySnapshot, setSerumSnapshot, setSerumCommuni
 
 router.get("/set/basketball/gcf",setBbSnapshot);
 router.get("/set/basketball/community",setBbCommunitySnapshot);
-router.get("/set/serum/gcf",setSerumSnapshot);
+router.post("/set/serum/gcf",setSerumSnapshot);
 router.post("/set/serum/community",setSerumCommunitySnapshot);
 router.get("/set/intel/drop1",setIntelSnapshotDrop1);
 router.get("/set/intel/drop2",setIntelSnapshotDrop2);
