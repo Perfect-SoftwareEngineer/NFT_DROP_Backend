@@ -57,7 +57,6 @@ const save = async (request, response) => {
             quantity: 1
           })
           await snapshot.save();
-          console.log("jere")
         }
         else{
           snapshots[0]['quantity'] = parseInt(snapshots[0]['quantity']) + 1;

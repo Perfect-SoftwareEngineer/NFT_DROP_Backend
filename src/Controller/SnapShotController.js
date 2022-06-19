@@ -50,7 +50,7 @@ const setSerumSnapshot = async (request, response) => {
 
 const setBbCommunitySnapshot = async (request, response) => {
   try {
-    await setBbCommunityHolderData(response)
+    await setBbCommunityHolderData(request, response)
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
