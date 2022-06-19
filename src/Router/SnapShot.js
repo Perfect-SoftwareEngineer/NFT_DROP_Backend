@@ -3,7 +3,7 @@ const router = express.Router();
 const { setBbSnapshot, setBbCommunitySnapshot, setSerumSnapshot, setSerumCommunitySnapshot, getRklSnapshot, setIntelSnapshotDrop1, setIntelSnapshotDrop2, setIntelSnapshotDrop3, getIntelSnapshotList, get1226Snapshot, get1226SnapshotIndividual, updateSnapshotClaim } = require("../Controller/SnapShotController");
 
 router.get("/set/basketball/gcf",setBbSnapshot);
-router.get("/set/basketball/community",setBbCommunitySnapshot);
+router.post("/set/basketball/community",setBbCommunitySnapshot);
 router.post("/set/serum/gcf",setSerumSnapshot);
 router.post("/set/serum/community",setSerumCommunitySnapshot);
 router.get("/set/intel/drop1",setIntelSnapshotDrop1);

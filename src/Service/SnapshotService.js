@@ -10,6 +10,7 @@ const {bbGCFSnapshotModel} = require('../Model/BbGCFSnapshotModel');
 const {bbCommunitySnapshotModel} = require('../Model/BbCommunitySnapshotModel');
 const {serumGCFSnapshotModel} = require('../Model/SerumGCFSnapshotModel');
 const {serumCommunitySnapshotModel} = require('../Model/SerumCommunitySnapshotModel');
+const {ftxCodeModel} = require('../Model/FtxCodeModel');
 var { upload } = require('./S3Service')
 
 require("dotenv").config();
@@ -118,66 +119,107 @@ const setSerumHolderData = async (request, response) => {
   }
 }
 
-const setBbCommunityHolderData = async (response) => {
-  try{
+// const setBbCommunityHolderData = async (response) => {
+//   try{
       
-      let results = [];
-      // const dgcfData = await getHolder(137, process.env.DGCF_ADDRESS);
-      // results = results.concat(dgcfData);
-      // console.log(results.length)
-      // const rgcfData = await getHolder(1, process.env.RGCF_ADDRESS);
-      // results = results.concat(rgcfData);
-      // console.log(results.length)
+//       let results = [];
+//       // const dgcfData = await getHolder(137, process.env.DGCF_ADDRESS);
+//       // results = results.concat(dgcfData);
+//       // console.log(results.length)
+//       // const rgcfData = await getHolder(1, process.env.RGCF_ADDRESS);
+//       // results = results.concat(rgcfData);
+//       // console.log(results.length)
 
-      // const sgcfTokenId = '55464657044963196816950587289035428064568320970692304673817341489688352917504'
-      // const sgcfData = await getHolderByTokenId(1, process.env.SGCF_ADDRESS, sgcfTokenId);
-      // results = results.concat(sgcfData);
+//       // const sgcfTokenId = '55464657044963196816950587289035428064568320970692304673817341489688352917504'
+//       // const sgcfData = await getHolderByTokenId(1, process.env.SGCF_ADDRESS, sgcfTokenId);
+//       // results = results.concat(sgcfData);
       
-      const ggcfData = await getHolder(1, process.env.GGCF_ADDRESS);
-      results = results.concat(ggcfData);
+//       const ggcfData = await getHolder(1, process.env.GGCF_ADDRESS);
+//       results = results.concat(ggcfData);
       
-      results = results.filter((value, index, self) =>{
-        if(index === self.findIndex((t) => (t.address === value.address))){
-          duplicate = self.filter((t) => t.address === value.address)
-          if(duplicate.length > 1) {
-              sum = 0
-              duplicate.map(t => {sum += parseInt(t.quantity)});
-              value.quantity = sum;
-          }
-          return value
-        }
-      })
-      await bbCommunitySnapshotModel.deleteMany({});
+//       results = results.filter((value, index, self) =>{
+//         if(index === self.findIndex((t) => (t.address === value.address))){
+//           duplicate = self.filter((t) => t.address === value.address)
+//           if(duplicate.length > 1) {
+//               sum = 0
+//               duplicate.map(t => {sum += parseInt(t.quantity)});
+//               value.quantity = sum;
+//           }
+//           return value
+//         }
+//       })
+//       await bbCommunitySnapshotModel.deleteMany({});
 
-      results.map(async (list) => {
-        try{
-            const data = new bbCommunitySnapshotModel({
-                address : list.address,
-                quantity : list.quantity
-            })
-            await data.save()
-        } catch(err) {}
-      })
+//       results.map(async (list) => {
+//         try{
+//             const data = new bbCommunitySnapshotModel({
+//                 address : list.address,
+//                 quantity : list.quantity
+//             })
+//             await data.save()
+//         } catch(err) {}
+//       })
 
-      const today = getCurrentDate();
+//       const today = getCurrentDate();
 
-      const csvWriter = createCsvWriter({
-        path: `${today}-community-snapshot.csv`,
-        header: [
-          {id: 'address', title: 'Address'},
-          {id: 'quantity', title: 'Quantity'}
-        ]
-      });
-      await csvWriter.writeRecords(results);
+//       const csvWriter = createCsvWriter({
+//         path: `${today}-community-snapshot.csv`,
+//         header: [
+//           {id: 'address', title: 'Address'},
+//           {id: 'quantity', title: 'Quantity'}
+//         ]
+//       });
+//       await csvWriter.writeRecords(results);
       
-      const fileContent = fs.readFileSync(`${today}-community-snapshot.csv`);
-      fs.unlinkSync(`${today}-community-snapshot.csv`)
-      upload(fileContent, `${today}-community-snapshot.csv`, 'text/csv', response);
-      return `${today}-community-snapshot.csv`;
-  } catch(err) {
-      console.log(err)
-      return [];
+//       const fileContent = fs.readFileSync(`${today}-community-snapshot.csv`);
+//       fs.unlinkSync(`${today}-community-snapshot.csv`)
+//       upload(fileContent, `${today}-community-snapshot.csv`, 'text/csv', response);
+//       return `${today}-community-snapshot.csv`;
+//   } catch(err) {
+//       console.log(err)
+//       return [];
+//   }
+// }
+
+const setBbCommunityHolderData = async (request, response) => {
+  const data = request.files.file.data;
+  const options = {
+    delimiter: ',', // optional
+    headers: 'address,quantity'
+  };
+
+  const lists = await csvjson.toObject(data.toString('utf8'), options);
+  lists.shift();
+  await bbCommunitySnapshotModel.deleteMany({});
+  for(let i = 0; i < lists.length; i ++) {
+    try{
+        const data = new bbCommunitySnapshotModel({
+            address : lists[i].address.toLowerCase(),
+            quantity : lists[i].quantity
+        })
+        await data.save()
+    } catch(err) {console.log(`duplicate address ${lists[i].address}`)}
   }
+  const ftxCodes = await ftxCodeModel.find({});
+  try{
+    for(let i = 0; i < ftxCodes.length ; i ++) {
+      if(ftxCodes[i].address != "0x"){
+        const snapshots = await bbCommunitySnapshotModel.find({address: ftxCodes[i].address});
+        if(snapshots.length == 0) {
+          const snapshot = new bbCommunitySnapshotModel({
+            address: ftxCodes[i].address,
+            quantity: 1
+          })
+          await snapshot.save();
+        }
+        else{
+          snapshots[0]['quantity'] = parseInt(snapshots[0]['quantity']) + 1;
+          await snapshots[0].save()
+        }
+      } 
+    }
+  } catch(err) {console.log(err)}
+  return response.status(HttpStatusCodes.OK).send("done");
 }
 
 const setSerumCommunityHolderData = async(request, response) => {
