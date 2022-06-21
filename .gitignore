@@ -7,3 +7,4 @@ yarn.lock
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .csv
+metadata.json

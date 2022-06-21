@@ -23,9 +23,11 @@ const initMerkleSingle = async (gameId) => {
 const initMerkleMultiple = async (data, nft) => {
     let leafNodes;
     if(nft == 'Basketball') {
-        leafNodes = await data.map((node) => {
-            return utils.solidityKeccak256( ["address", "uint"], [node['address'], parseInt(node['quantity'])]);
-        });
+        try{
+            leafNodes = await data.map((node) => {
+                return utils.solidityKeccak256( ["address", "uint"], [node['address'], parseInt(node['quantity'])]);
+            });
+        } catch(err) {console.log(err)}
     } else {
         leafNodes = await data.map((node) => {
             return utils.solidityKeccak256( ["address", "uint", "uint"], [node['address'], parseInt(node['token_id']), parseInt(node['quantity'])]);
@@ -50,7 +52,7 @@ const getBbHexProof = async (request, response) => {
 }
 
 const getBbGCFRoot = async (request, response) => {
-    const gcfData = await bbGCFSnapshotModel.find({});
+    const gcfData = await bbGCFSnapshotModel.find({}).sort({createdAt: 1});
     const merkleTree = await initMerkleMultiple(gcfData, "Basketball");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
@@ -66,7 +68,7 @@ const getBbGCFHexProof = async (request, response) => {
             hexProof: []
         });
     } else {
-        const gcfData = await bbGCFSnapshotModel.find({});
+        const gcfData = await bbGCFSnapshotModel.find({}).sort({createdAt: 1});
         const merkleTree = await initMerkleMultiple(gcfData, "Basketball");
         const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
         const hexProof = merkleTree.getHexProof(claimingAddress);
@@ -93,7 +95,7 @@ const bbGcfClaim = async (request, response) => {
 }
 
 const getBbCommunityRoot = async (request, response) => {
-    const communityData = await bbCommunitySnapshotModel.find({});
+    const communityData = await bbCommunitySnapshotModel.find({}).sort({createdAt: 1});
     const merkleTree = await initMerkleMultiple(communityData, "Basketball");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
@@ -109,7 +111,7 @@ const getBbCommunityHexProof = async (request, response) => {
             hexProof: []
         });
     } else {
-        const communityData = await bbCommunitySnapshotModel.find({});
+        const communityData = await bbCommunitySnapshotModel.find({}).sort({createdAt: 1});
         const merkleTree = await initMerkleMultiple(communityData, "Basketball");
         const claimingAddress = utils.solidityKeccak256(["address", "uint"],[userData[0]['address'], parseInt(userData[0]['quantity'])]);
         const hexProof = merkleTree.getHexProof(claimingAddress);
@@ -136,7 +138,7 @@ const bbCommunityClaim = async (request, response) => {
 }
 
 const getSerumGCFRoot = async (request, response) => {
-    const gcfData = await serumGCFSnapshotModel.find({});
+    const gcfData = await serumGCFSnapshotModel.find({}).sort({createdAt: 1});
     const merkleTree = await initMerkleMultiple(gcfData, "Serum");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
@@ -149,7 +151,7 @@ const getSerumGCFHexProof = async (request, response) => {
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({});
     } else {
-        const gcfData = await serumGCFSnapshotModel.find({});
+        const gcfData = await serumGCFSnapshotModel.find({}).sort({createdAt: 1});
         const merkleTree = await initMerkleMultiple(gcfData, "Serum");
         const result = {};
         userData.map(data => {
@@ -166,7 +168,7 @@ const getSerumGCFHexProof = async (request, response) => {
 }
 
 const getSerumCommunityRoot = async (request, response) => {
-    const communityData = await serumCommunitySnapshotModel.find({});
+    const communityData = await serumCommunitySnapshotModel.find({}).sort({createdAt: 1});
     const merkleTree = await initMerkleMultiple(communityData, "Serum");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);
@@ -179,7 +181,7 @@ const getSerumCommunityHexProof = async (request, response) => {
     if(userData.length == 0) {
         return response.status(HttpStatusCodes.OK).send({});
     } else {
-        const communityData = await serumCommunitySnapshotModel.find({});
+        const communityData = await serumCommunitySnapshotModel.find({}).sort({createdAt: 1});
         const merkleTree = await initMerkleMultiple(communityData, "Serum");
         const result = {};
         userData.map(data => {

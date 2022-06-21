@@ -9,9 +9,11 @@ const {intelSnapshotDrop2Model} = require('../Model/IntelSnapshotDrop2Model');
 const {intelSnapshotDrop3Model} = require('../Model/IntelSnapshotDrop3Model');
 const { rklSnapshotModel } = require('./../Model/RKLSnapshot');
 const { upload } = require('../Service/S3Service');
-const {setBbHolderData, setSerumHolderData, setBbCommunityHolderData, setSerumCommunityHolderData, setIntelHolderData} = require('../Service/SnapshotService');
+const SnapshotService = require('../Service/SnapshotService');
 
 require("dotenv").config();
+
+var snapshotService = new SnapshotService();
 
 const updateSnapshotClaim = async (request, response) => {
     try {
@@ -33,15 +35,16 @@ const updateSnapshotClaim = async (request, response) => {
 
 const setBbSnapshot = async (request, response) => {
   try {
-    await setBbHolderData(response);
+    await snapshotService.setBbHolderData(response);
   } catch(err) {
+    console.log(err)
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 
 const setSerumSnapshot = async (request, response) => {
   try {
-    await setSerumHolderData(request, response);
+    await snapshotService.setSerumHolderData(request, response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -50,7 +53,7 @@ const setSerumSnapshot = async (request, response) => {
 
 const setBbCommunitySnapshot = async (request, response) => {
   try {
-    await setBbCommunityHolderData(request, response)
+    await snapshotService.setBbCommunityHolderData(request, response)
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -58,7 +61,7 @@ const setBbCommunitySnapshot = async (request, response) => {
 
 const setSerumCommunitySnapshot = async (request, response) => {
   try {
-    await setSerumCommunityHolderData(request, response)
+    await snapshotService.setSerumCommunityHolderData(request, response)
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -66,7 +69,7 @@ const setSerumCommunitySnapshot = async (request, response) => {
 
 const setIntelSnapshotDrop1 = async (request, response) => {
   try {
-    await setIntelHolderData("drop1", response);
+    await snapshotService.setIntelHolderData("drop1", response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -74,7 +77,7 @@ const setIntelSnapshotDrop1 = async (request, response) => {
 
 const setIntelSnapshotDrop2 = async (request, response) => {
   try {
-    await setIntelHolderData("drop2", response);
+    await snapshotService.setIntelHolderData("drop2", response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
@@ -82,7 +85,7 @@ const setIntelSnapshotDrop2 = async (request, response) => {
 
 const setIntelSnapshotDrop3 = async (request, response) => {
   try {
-    await setIntelHolderData("drop3", response);
+    await snapshotService.setIntelHolderData("drop3", response);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }

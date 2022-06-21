@@ -1,54 +1,15 @@
-[
-    {
-        "id" : "1",
-        "name" : "Eyes"
-    },
-    {
-        "id" : "2",
-        "name" : "Background"
-    },
-    {
-        "id" : "3",
-        "name" : "Face Accesories"
-    },
-    {
-        "id" : "4",
-        "name" : "Ear Accesories"
-    },
-    {
-        "id" : "5",
-        "name" : "Neck Accesories"
-    },
-    {
-        "id" : "6",
-        "name" : "Mouth"
-    },
-    {
-        "id" : "7",
-        "name" : "Base Accessories"
-    },
-    {
-        "id" : "8",
-        "name" : "Head Accesories"
-    },
-    {
-        "id" : "9",
-        "name" : "Torso"
-    },
-    {
-        "id" : "10",
-        "name" : "Pants"
-    },
-    {
-        "id" : "11",
-        "name" : "Shoes"
-    },
-    {
-        "id" : "12",
-        "name" : "Hand Accessories"
-    },
-    {
-        "id" : "13",
-        "name" : "Torso Accessories"
-    }
-]
+{
+    "1" : "Eyes",
+    "2" : "Background",
+    "3" : "Face Accessories",
+    "4" : "Ear Accessories",
+    "5" : "Neck Accessories",
+    "6" : "Mouth",
+    "7" : "Socks",
+    "8" : "Head Accessories",
+    "9" : "Torso",
+    "10" : "Pants",
+    "11" : "Shoes",
+    "12" : "Hand Accessories",
+    "13" : "Platform"
+}
