@@ -1,52 +1,14 @@
-[
-    {
-        "id" : "1",
-        "name" : "Unanimous"
-    },
-    {
-        "id" : "2",
-        "name" : "Broken History"
-    },
-    {
-        "id" : "3",
-        "name" : "Flow"
-    },
-    {
-        "id" : "4",
-        "name" : "Wrap"
-    },
-    {
-        "id" : "5",
-        "name" : "The Lab"
-    },
-    {
-        "id" : "6",
-        "name" : "Smilesss"
-    },
-    {
-        "id" : "7",
-        "name" : "Chibi Dinos"
-    },
-    {
-        "id" : "8",
-        "name" : "Hape"
-    },
-    {
-        "id" : "9",
-        "name" : "CyberKongz"
-    },
-    
-    {
-        "id" : "10",
-        "name" : "Under Armour"
-    },
-    
-    {
-        "id" : "11",
-        "name" : "Curry Brand"
-    },
-    {
-        "id" : "12",
-        "name" : "Default"
-    }
-]
+{
+    "1" : "Unanimous",
+    "2" : "Broken History",
+    "3" : "Flow",
+    "4" : "Wrap",
+    "5" : "The Lab",
+    "6" : "Smilesss",
+    "7" : "Chibi Dinos",
+    "8" : "Hape",
+    "9" : "CyberKongz",
+    "10" : "Under Armour",
+    "11" : "Curry Brand",
+    "12" : "Default"
+}
