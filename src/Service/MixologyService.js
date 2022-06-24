@@ -42,7 +42,8 @@ class MixologyService {
             })
         }
         const json = {"attributes" : attributes};
-        fs.writeFileSync("metadata.json", JSON.stringify(json));
+        console.log(json)
+        // fs.writeFileSync("metadata.json", JSON.stringify(json));
     }
 
     calcTraitCounts (serumIds) {
@@ -83,26 +84,31 @@ class MixologyService {
         return traits;
     }
 
-    getTraitAssetName(serumId, traitId, rarity){
-        console.log(serumId, traitId, rarity)
-        const datas = this.traitAssets.filter(asset => asset['serum_id'] == serumId && asset['trait_id'] == traitId && asset['rarity'] == rarity)
-        const asset = this.random(datas);
-        if (asset) 
-            return asset.name;
-        else 
-            return;
+    getTraitAssetName(serumId, traitIds){
+        let finished = false;
+        const get = () => {
+            const rarity = this.randomRarityByWeight();
+            const datas = this.traitAssets.filter(asset => asset['serum_id'] == serumId && asset['rarity'] == rarity && traitIds.includes(asset['trait_id']))
+            const asset = this.random(datas);
+            if (asset) {
+                return {name: asset['name'], traitId: asset['trait_id'], rarity: rarity};
+            }
+        }
+        while (!finished) {
+            const result = get();
+            if(result) {
+                finished = true;
+                return result;
+            }
+        }
     }
 
     async getTraitAssetsBySerum(serumIds, traitCounts) {
-        let traitIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+        let traitIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
         let result = {}
         for(let i = 0; i < serumIds.length; i ++) {
-            let serumTraitIds = this.getTriatForSerum(serumIds[i])
             for (let j = 0 ; j < traitCounts[i]; j ++) {
-                const rarity = this.randomRarityByWeight();
-                const traitId = this.random(serumTraitIds);
-                serumTraitIds = this.removeFromArray(traitId, serumTraitIds);
-                const name = this.getTraitAssetName(serumIds[i], traitId, rarity)
+                const {name, traitId, rarity} = this.getTraitAssetName(serumIds[i], traitIds);
                 if(name) {
                     traitIds = this.removeFromArray(traitId, traitIds);
                     result[traitId] = {
@@ -110,14 +116,15 @@ class MixologyService {
                         'serumId': serumIds[i].toString(),
                         'rarity': rarity
                     }
+                    // console.log(name, serumIds[i].toString(), rarity)
                 }
             }
         }
 
-        for(let i = 0; i < traitIds.length; i ++) {
-            const rarity = this.randomRarityByWeight();
-            const name = this.getTraitAssetName('12', traitIds[i], rarity)
-            result[traitIds[i]] = {
+        while(traitIds.length > 0) {
+            const {name, traitId, rarity} = this.getTraitAssetName('12', traitIds)
+            traitIds = this.removeFromArray(traitId, traitIds);
+            result[traitId] = {
                 'name': name,
                 'serumId': '12',
                 'rarity': rarity
