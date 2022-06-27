@@ -17,7 +17,7 @@ const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandb
 const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
 const galaTokenAddress = process.env.NODE_ENV == 'production' ? process.env.GALA_ADDRESS : process.env.GALA_ADDRESS_TEST;
 const rklTokenAddress = process.env.RKL_ADDRESS;
-const bbAddress = process.env.NODE_ENV == 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+const bbAddress = process.env.NODE_ENV == 'production' ? process.env.BB_ADDRESS : process.env.BB_TEST_ADDRESS;
 const serumAddress = process.env.NODE_ENV == 'production' ? process.env.SERUM_ADDRESS : process.env.SERUM_TEST_ADDRESS;
 
 const sandboxTokenId = "55464657044963196816950587289035428064568320970692304673817341489688352917504";

@@ -8,7 +8,7 @@ const { threesCurryModel } = require("../Model/ThreesCurryModel");
 const { currentWarriorsMatchModel } = require("../Model/CurrentWarriorsMatchModel");
 const { freeBBModel } = require("../Model/FreeBBModel");
 const { createTweet, client } = require('./twitter');
-const BBHABI = require('../config/ABI/BasketBallHead');
+const BBABI = require('../config/ABI/BasketBall');
 
 require("dotenv").config();
 
@@ -97,8 +97,8 @@ async function setRootKey(gameId, rootKey, amount) {
   const web3 = new Web3(provider);
   
   const [from] = await web3.eth.getAccounts();
-  const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
-  const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+  const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BB_ADDRESS : process.env.BB_TEST_ADDRESS;
+  const contract = new web3.eth.Contract(BBABI, contractAddress, { from });
   try{
     const tx = await contract.methods.setGameRootKey(gameId, rootKey, amount).send();
     console.log(tx)

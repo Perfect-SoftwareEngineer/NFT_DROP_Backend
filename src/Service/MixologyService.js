@@ -1,14 +1,18 @@
 
 const Chance = require('chance');
-const path = require('path');
-const fs = require('fs');
+const Queue = require('bull');
+
 const {traitAssetsModel} = require('../Model/TraitAssetsModel');
+const {metadataModel} = require('../Model/MetadataBBHModel');
 const traitJson = require('../constants/Trait.json');
 const serumJson = require('../constants/Serum.json');
+const {processJob} = require('./RedisService');
 
 class MixologyService {
     constructor(){
         this.chance = new Chance();
+        this.queue = new Queue('3d rendering', 'redis://127.0.0.1:6379');
+        this.queue.process(processJob)
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
     }
@@ -28,7 +32,28 @@ class MixologyService {
         return rarity;
     }
 
-    generateMetadata(data){
+    generateTokenId() {
+        let minm = 10000000000000000000;
+        let maxm = 99999999999999999999;
+        return parseInt(Math.floor(Math
+        .random() * (maxm - minm + 1)) + minm);
+    }
+
+    saveMetadata(tokenId) {
+        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/3d-avatar/${tokenId}.png`
+        const metadata = new metadataModel({
+            name: "test",
+            description: "test",
+            image: image,
+            external_url: "",
+            animation_url: "",
+            tokenId: tokenId,
+            fee_recipient: process.env.ADMIN_WALLET
+        });
+        metadata.save();
+    }
+
+    generateImageMetadata(data){
         const attributes = []
         for (const key in data) {
             const traitType = traitJson[key].replace(/ /gi, '_');
@@ -42,7 +67,9 @@ class MixologyService {
             })
         }
         const json = {"attributes" : attributes};
-        console.log(json)
+        console.log('image metadata generated')
+        this.queue.add({data: "test"});
+        // queue.process()
         // fs.writeFileSync("metadata.json", JSON.stringify(json));
     }
 
@@ -130,14 +157,15 @@ class MixologyService {
                 'rarity': rarity
             }
         }
-        this.generateMetadata(result)
+        this.generateImageMetadata(result)
     }
     // external
-    async createMetadata (request) {
-        const {wallet, serumIds} = request.body;
+    async createMetadata (wallet, serumIds) {
+        const tokenId = this.generateTokenId();
+        this.saveMetadata(tokenId);
         const traitCounts = this.calcTraitCounts(serumIds);
-        console.log(traitCounts)
         this.getTraitAssetsBySerum(serumIds, traitCounts)
+        return tokenId;
     }
 }
 
