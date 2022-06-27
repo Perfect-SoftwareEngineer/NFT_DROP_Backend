@@ -11,8 +11,8 @@ const {processJob} = require('./RedisService');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
-        this.queue = new Queue('3d rendering', 'redis://127.0.0.1:6379');
-        this.queue.process(processJob)
+        // this.queue = new Queue('3d rendering', 'redis://127.0.0.1:6379');
+        // this.queue.process(processJob)
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
     }
@@ -68,7 +68,7 @@ class MixologyService {
         }
         const json = {"attributes" : attributes};
         console.log('image metadata generated')
-        this.queue.add({data: "test"});
+        // this.queue.add({data: "test"});
         // queue.process()
         // fs.writeFileSync("metadata.json", JSON.stringify(json));
     }
