@@ -13,8 +13,8 @@ class MixologyService {
         this.chance = new Chance();
         this.queue = new Queue('3d rendering', { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
         this.queue.process(processJob)
-        this.queue.on('completed', (job, result) => {
-            console.log(`Job completed with result ${result}`);
+        this.queue.on('completed', (job) => {
+            console.log(`Job completed`);
         })
         this.queue.on('error', (job, error) => {
             console.log(`Job has error ${error}`);
