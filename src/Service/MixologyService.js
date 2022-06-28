@@ -46,7 +46,7 @@ class MixologyService {
     }
 
     saveMetadata(tokenId) {
-        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/3d-avatar/${tokenId}.png`
+        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/3d-avatar-dev/${tokenId}.png`
         const metadata = new metadataModel({
             name: "test",
             description: "test",
