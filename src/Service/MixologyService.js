@@ -11,8 +11,14 @@ const {processJob} = require('./RedisService');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
-        // this.queue = new Queue('3d rendering', 'redis://127.0.0.1:6379');
-        // this.queue.process(processJob)
+        this.queue = new Queue('3d rendering', { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
+        this.queue.process(processJob)
+        this.queue.on('completed', (job, result) => {
+            console.log(`Job completed with result ${result}`);
+        })
+        this.queue.on('error', (job, error) => {
+            console.log(`Job has error ${error}`);
+        })
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
     }
@@ -68,7 +74,7 @@ class MixologyService {
         }
         const json = {"attributes" : attributes};
         console.log('image metadata generated')
-        // this.queue.add({data: "test"});
+        return json;
         // queue.process()
         // fs.writeFileSync("metadata.json", JSON.stringify(json));
     }
@@ -157,14 +163,19 @@ class MixologyService {
                 'rarity': rarity
             }
         }
-        this.generateImageMetadata(result)
+        const metadata = this.generateImageMetadata(result)
+        return metadata;
     }
     // external
     async createMetadata (wallet, serumIds) {
         const tokenId = this.generateTokenId();
         this.saveMetadata(tokenId);
         const traitCounts = this.calcTraitCounts(serumIds);
-        this.getTraitAssetsBySerum(serumIds, traitCounts)
+        const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
+        this.queue.add({tokenId: tokenId, metadata: metadata}, {
+            attempts: 5, // If job fails it will retry till 5 times
+            backoff: 1000 // static 5 sec delay between retry
+        });
         return tokenId;
     }
 }
