@@ -177,7 +177,9 @@ class MixologyService {
         const traitCounts = this.calcTraitCounts(serumIds);
         const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
         this.queue.add({tokenId: tokenId, metadata: metadata}, {
-            attempts: 5
+            defaultJobOptions: { 
+                attempts: 3 
+            } 
         });
         return tokenId;
     }
