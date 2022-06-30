@@ -16,8 +16,12 @@ class MixologyService {
         this.queue.on('completed', (job) => {
             console.log(`Job completed`);
         })
-        this.queue.on('error', (job, error) => {
+        this.queue.on('error', (error) => {
             console.log(`Job has error ${error}`);
+        })
+        this.queue.on('failed', (job) => {
+            console.log(`Job failed ${job.id}`);
+            // this.queue.add({tokenId: job.data.tokenId, metadata: job.data.metadata});
         })
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
@@ -173,8 +177,7 @@ class MixologyService {
         const traitCounts = this.calcTraitCounts(serumIds);
         const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
         this.queue.add({tokenId: tokenId, metadata: metadata}, {
-            attempts: 5, // If job fails it will retry till 5 times
-            backoff: 1000 // static 5 sec delay between retry
+            attempts: 5
         });
         return tokenId;
     }
