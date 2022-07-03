@@ -14,13 +14,13 @@ class MixologyService {
         this.queue = new Queue('3d rendering', { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
         this.queue.process(processJob)
         this.queue.on('completed', (job) => {
-            console.log(`Job completed`);
+            console.log(`Job completed  ${job.id} ${job.data.tokenId}`);
         })
         this.queue.on('error', (error) => {
             console.log(`Job has error ${error}`);
         })
         this.queue.on('failed', (job) => {
-            console.log(`Job failed ${job.id}`);
+            console.log(`Job failed ${job.id} ${job.data.tokenId}`);
             // this.queue.add({tokenId: job.data.tokenId, metadata: job.data.metadata});
         })
         traitAssetsModel.find({})
@@ -137,6 +137,9 @@ class MixologyService {
                 finished = true;
                 return result;
             }
+            else {
+                console.log('again')
+            }
         }
     }
 
@@ -173,13 +176,13 @@ class MixologyService {
     // external
     async createMetadata (wallet, serumIds) {
         const tokenId = this.generateTokenId();
+        console.log(tokenId)
         this.saveMetadata(tokenId);
         const traitCounts = this.calcTraitCounts(serumIds);
+        console.log(traitCounts)
         const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
         this.queue.add({tokenId: tokenId, metadata: metadata}, {
-            defaultJobOptions: { 
-                attempts: 3 
-            } 
+            attempts: 3 
         });
         return tokenId;
     }

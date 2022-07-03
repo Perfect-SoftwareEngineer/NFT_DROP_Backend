@@ -3,7 +3,7 @@ const axios = require('axios').default;
 require("dotenv").config();
 
 async function processJob (job, done) {
-    console.log("queue ", job.id);
+    console.log("queue ", job.id, job.data.tokenId);
     try {
         const endpoint = `${process.env.AVATAR_SERVER_URL}:3000/create-avatar`
         const res = await axios.post(endpoint, {
@@ -12,8 +12,8 @@ async function processJob (job, done) {
         });
         done()
     } catch (e) {
-        console.log(err)
-        return Promise.reject(new Error(`${e}`));
+        console.log(e.response.status)
+        done(true)
     }
         
 
