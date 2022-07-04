@@ -61,8 +61,8 @@ class MixologyService {
 
         const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/${s3Folder}/${tokenId}.png`
         const metadata = new metadataModel({
-            name: "test",
-            description: "test",
+            name: "Basketball Headz",
+            description: "Curry brand is unifying basketball and positive communities across the Metaverse.\nIntroducing Basketball Headz - a limited-edition 3D generative NFT project that unifies multiple communities to mix and match your favorite NFT traits.\nBy owning this NFT, you agree to all the terms and conditions under lab.currybrand.com/legal/nft-ownership-agreement",
             image: image,
             external_url: "",
             animation_url: "",
