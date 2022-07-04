@@ -28,7 +28,15 @@ let metadataSchema = new mongoose.Schema({
     fee_recipient : {
         type: String,
         require : true
-    }
+    },
+    attributes : [{
+        trait_type : {
+            type: String
+        },
+        value : {
+            type: String
+        }
+    }]
   },{
       timestamps : true,
   }

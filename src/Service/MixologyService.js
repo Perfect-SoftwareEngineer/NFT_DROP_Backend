@@ -1,13 +1,16 @@
 
 const Chance = require('chance');
 const Queue = require('bull');
+const fs = require('fs');
+
+require("dotenv").config();
 
 const {traitAssetsModel} = require('../Model/TraitAssetsModel');
 const {metadataModel} = require('../Model/MetadataBBHModel');
 const traitJson = require('../constants/Trait.json');
 const serumJson = require('../constants/Serum.json');
 const {processJob} = require('./RedisService');
-
+const {uploadImage} = require('./S3Service');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
@@ -21,10 +24,11 @@ class MixologyService {
         })
         this.queue.on('failed', (job) => {
             console.log(`Job failed ${job.id} ${job.data.tokenId}`);
-            // this.queue.add({tokenId: job.data.tokenId, metadata: job.data.metadata});
         })
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
+
+        this.mixImageContent = fs.readFileSync(`./src/constants/mix.png`);
     }
 
     // internal 
@@ -49,8 +53,13 @@ class MixologyService {
         .random() * (maxm - minm + 1)) + minm);
     }
 
-    saveMetadata(tokenId) {
-        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/3d-avatar-dev/${tokenId}.png`
+    saveMetadata(tokenId, imageMetadata) {
+        
+        const s3Folder = process.env.NODE_ENV == 'production' ? '3d-avatar' : '3d-avatar-dev'
+
+        uploadImage(this.mixImageContent, `${s3Folder}/${tokenId}.png`, 'image/png');
+
+        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/${s3Folder}/${tokenId}.png`
         const metadata = new metadataModel({
             name: "test",
             description: "test",
@@ -58,13 +67,15 @@ class MixologyService {
             external_url: "",
             animation_url: "",
             tokenId: tokenId,
-            fee_recipient: process.env.ADMIN_WALLET
+            fee_recipient: process.env.ADMIN_WALLET,
+            attributes: imageMetadata
         });
         metadata.save();
     }
 
     generateImageMetadata(data){
         const attributes = []
+        const attributesDb = []
         for (const key in data) {
             const traitType = traitJson[key].replace(/ /gi, '_');
             const serumId = data[key]['serumId']
@@ -75,12 +86,14 @@ class MixologyService {
                 'trait_type': traitType,
                 'value': fullName
             })
+            attributesDb.push({
+                'trait_type': traitJson[key],
+                'value': data[key]['name']
+            })
         }
-        const json = {"attributes" : attributes};
+        const json = {attributes, attributesDb};
         console.log('image metadata generated')
         return json;
-        // queue.process()
-        // fs.writeFileSync("metadata.json", JSON.stringify(json));
     }
 
     calcTraitCounts (serumIds) {
@@ -107,7 +120,6 @@ class MixologyService {
                 }
                 break;
         }
-        const rarity = this.randomRarityByWeight()
             
         return traitCounts;
     }
@@ -176,12 +188,11 @@ class MixologyService {
     // external
     async createMetadata (wallet, serumIds) {
         const tokenId = this.generateTokenId();
-        console.log(tokenId)
-        this.saveMetadata(tokenId);
         const traitCounts = this.calcTraitCounts(serumIds);
         console.log(traitCounts)
         const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
-        this.queue.add({tokenId: tokenId, metadata: metadata}, {
+        this.saveMetadata(tokenId, metadata.attributesDb);
+        this.queue.add({tokenId: tokenId, metadata: {'attributes': metadata.attributes}}, {
             attempts: 3 
         });
         return tokenId;

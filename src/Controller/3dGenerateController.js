@@ -8,9 +8,9 @@ const create = async (request, response) => {
   const {wallet, serumIds} = request.body;
 
   try{
-    // const hasNft = await checkBalance(wallet, serumIds);
-    // if(!hasNft) 
-    //   return response.status(HttpStatusCodes.BAD_REQUEST).send("No basketball or serum exist in user's wallet");
+    const hasNft = await checkBalance(wallet, serumIds);
+    if(!hasNft) 
+      return response.status(HttpStatusCodes.BAD_REQUEST).send("No basketball or serum exist in user's wallet");
 
     const tokenId = await mixologyService.createMetadata(wallet, serumIds);
     return response.status(HttpStatusCodes.OK).send({tokenId});

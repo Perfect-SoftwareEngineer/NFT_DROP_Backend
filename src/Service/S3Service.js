@@ -29,6 +29,19 @@ const upload = (content, name, type, response) => {
     }
 }
 
+const uploadImage = (content, name, type) => {
+    
+    s3.upload({
+        Bucket: bucket,
+        Key: name,
+        Body: content,
+        ACL: 'public-read',
+        ContentEncoding: 'base64',
+        ContentType: type
+    });
+}
+
 module.exports = {
-    upload
+    upload,
+    uploadImage
 }
