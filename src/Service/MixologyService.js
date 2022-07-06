@@ -1,9 +1,10 @@
 
 const Chance = require('chance');
-const Queue = require('bull');
+
 const fs = require('fs');
 
 require("dotenv").config();
+
 
 const {traitAssetsModel} = require('../Model/TraitAssetsModel');
 const {metadataModel} = require('../Model/MetadataBBHModel');
@@ -11,20 +12,15 @@ const traitJson = require('../constants/Trait.json');
 const serumJson = require('../constants/Serum.json');
 const {processJob} = require('./RedisService');
 const {uploadImage} = require('./S3Service');
+const {QueueService} = require('./QueueService');
+
 class MixologyService {
     constructor(){
         this.chance = new Chance();
-        this.queue = new Queue('3d rendering', { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
-        this.queue.process(processJob)
-        this.queue.on('completed', (job) => {
-            console.log(`Job completed  ${job.id} ${job.data.tokenId}`);
-        })
-        this.queue.on('error', (error) => {
-            console.log(`Job has error ${error}`);
-        })
-        this.queue.on('failed', (job) => {
-            console.log(`Job failed ${job.id} ${job.data.tokenId}`);
-        })
+        this.queueOne = new QueueService(1);
+        this.queueTwo = new QueueService(2);
+        this.lastQueue = 0;
+
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
 
@@ -92,7 +88,6 @@ class MixologyService {
             })
         }
         const json = {attributes, attributesDb};
-        console.log('image metadata generated')
         return json;
     }
 
@@ -149,9 +144,6 @@ class MixologyService {
                 finished = true;
                 return result;
             }
-            else {
-                console.log('again')
-            }
         }
     }
 
@@ -186,15 +178,26 @@ class MixologyService {
         return metadata;
     }
     // external
+
+    addJob(tokenId, attributes) {
+        switch(this.lastQueue + 1){
+            case 1 :
+                this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
+                break;
+            case 2 :
+                this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
+                break;
+        }
+        this.lastQueue = (this.lastQueue + 1) % 2;
+    }
     async createMetadata (wallet, serumIds) {
         const tokenId = this.generateTokenId();
         const traitCounts = this.calcTraitCounts(serumIds);
-        console.log(traitCounts)
+
         const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
         this.saveMetadata(tokenId, metadata.attributesDb);
-        this.queue.add({tokenId: tokenId, metadata: {'attributes': metadata.attributes}}, {
-            attempts: 3 
-        });
+        this.addJob(tokenId, metadata.attributes)
+
         return tokenId;
     }
 }

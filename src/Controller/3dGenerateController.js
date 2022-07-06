@@ -6,7 +6,10 @@ var mixologyService = new MixologyService();
 
 const create = async (request, response) => {
   const {wallet, serumIds} = request.body;
-
+  
+  if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
+  }
   try{
     const hasNft = await checkBalance(wallet, serumIds);
     if(!hasNft) 

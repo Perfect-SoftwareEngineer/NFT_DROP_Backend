@@ -38,7 +38,10 @@ const uploadImage = (content, name, type) => {
         ACL: 'public-read',
         ContentEncoding: 'base64',
         ContentType: type
-    });
+    }, function(err, data) {
+        if(err) 
+            console.log(err)
+    })
 }
 
 module.exports = {
