@@ -12,7 +12,6 @@ let metadataSchema = new mongoose.Schema({
     },
     image : {
         type : String,
-        unique: true,
         require : true
     },
     external_url : {

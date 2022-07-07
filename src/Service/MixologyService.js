@@ -50,18 +50,13 @@ class MixologyService {
     }
 
     saveMetadata(tokenId, imageMetadata) {
-        
-        const s3Folder = process.env.NODE_ENV == 'production' ? '3d-avatar' : '3d-avatar-dev'
 
-        uploadImage(this.mixImageContent, `${s3Folder}/${tokenId}.png`, 'image/png');
-
-        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/${s3Folder}/${tokenId}.png`
         const metadata = new metadataModel({
-            name: "Basketball Headz",
+            name: `Basketball Headz #${tokenId}`,
             description: "Curry brand is unifying basketball and positive communities across the Metaverse.\nIntroducing Basketball Headz - a limited-edition 3D generative NFT project that unifies multiple communities to mix and match your favorite NFT traits.\nBy owning this NFT, you agree to all the terms and conditions under lab.currybrand.com/legal/nft-ownership-agreement",
-            image: image,
+            image: "",
             external_url: "",
-            animation_url: "",
+            animation_url: "https://luna-bucket.s3.us-east-2.amazonaws.com/mixology.gif",
             tokenId: tokenId,
             fee_recipient: process.env.ADMIN_WALLET,
             attributes: imageMetadata

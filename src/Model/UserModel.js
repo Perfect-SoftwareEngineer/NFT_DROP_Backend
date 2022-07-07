@@ -14,6 +14,9 @@ let userSchema = new mongoose.Schema({
         require : true,
         default : Math.floor(Math.random() * 1000000)
     },
+    email : {
+        type : String,
+    },
     role : {
         type: String,
         require : true

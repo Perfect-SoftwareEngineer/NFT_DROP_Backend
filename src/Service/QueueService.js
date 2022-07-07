@@ -5,6 +5,8 @@ const axios = require('axios').default;
 
 require("dotenv").config();
 
+const {metadataModel} = require('../Model/MetadataBBHModel');
+const {userModel} = require('../Model/UserModel');
 
 
 class QueueService {
@@ -20,6 +22,7 @@ class QueueService {
 
         this.queue.on('completed', (job) => {
             this.logger.info(`Queue ${serverNumber}'s job ${job.id} completed, token id ${job.data.tokenId}`);
+            this.completeJob(job.data.tokenId);
         })
         this.queue.on('error', (error) => {
             this.logger.info(`Queue ${serverNumber}'s job has error ${error}`);
@@ -43,7 +46,7 @@ class QueueService {
                 done();
             }
             else{
-                logger.error(`Queue ${this.serverNumber} server is not free now.`);
+                logger.error(`Queue ${this.data.serverNumber} server is not free now.`);
                 done(true);
             }
         } catch (e) {
@@ -59,6 +62,16 @@ class QueueService {
         this.logger.info(`Job is added to queue ${this.serverNumber}, token id ${tokenId}`);
     }
     
+    async completeJob (tokenId) {
+        let metadata = await metadataModel.find({tokenId: tokenId});
+
+        const s3Folder = process.env.NODE_ENV == 'production' ? '3d-avatar' : '3d-avatar-dev'
+        const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/${s3Folder}/${tokenId}.png`
+
+        metadata[0].image = image;
+        metadata[0].animation_url = "";
+        await metadata[0].save();
+    }
 }
 
 module.exports = {
