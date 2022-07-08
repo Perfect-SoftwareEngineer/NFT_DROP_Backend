@@ -40,9 +40,9 @@ class QueueService {
         logger.level = "all";
         logger.info(`Queue ${job.data.serverNumber}'s job ${job.id} is runnig, token id ${job.data.tokenId}`);
         try {
-            const result = await axios.get(`${job.data.serverUrl}:3000/status`);
+            const result = await axios.get(`${job.data.serverUrl}/status`);
             if(!result.data.running){
-                await axios.post(`${job.data.serverUrl}:3000/create-avatar`, {
+                await axios.post(`${job.data.serverUrl}/create-avatar`, {
                     id: job.data.tokenId,
                     metadata: job.data.metadata
                 });
