@@ -6,7 +6,7 @@ var {freeBBModel} = require('../Model/FreeBBModel')
 
 require("dotenv").config();
 
-const node = process.env.NODE_ENV === 'prodction' ? process.env.ETHEREUM_HTTP_NODE : process.env.ETHEREUM_HTTP_TEST_NODE
+const node = process.env.NODE_ENV === 'production' ? process.env.ETHEREUM_HTTP_NODE : process.env.ETHEREUM_HTTP_TEST_NODE
 const web3 = new Web3(new Web3.providers.HttpProvider(node));
 
 async function watchClaim(gameId, wallet) {
