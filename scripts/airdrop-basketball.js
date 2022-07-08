@@ -7,7 +7,7 @@ const Web3 = require('web3');
 const dotenv = require('dotenv');
 
 var {freeBBModel} = require('../src/Model/FreeBBModel')
-var BBHABI = require('../src/config/ABI/BasketBallHead');
+var BBABI = require('../src/config/ABI/BasketBall');
 
 dotenv.config({ path: './../.env'});
 
@@ -32,8 +32,8 @@ async function airdrop(snapshots) {
   const web3 = new Web3(provider);
   
   const [from] = await web3.eth.getAccounts();
-  const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
-  const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+  const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BB_ADDRESS : process.env.BB_TEST_ADDRESS;
+  const contract = new web3.eth.Contract(BBABI, contractAddress, { from });
   console.log(contract.methods)
   const failList = [];
   try{

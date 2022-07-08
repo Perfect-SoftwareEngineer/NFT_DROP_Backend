@@ -17,8 +17,9 @@ const subgraphAPIURL = 'https://api.thegraph.com/subgraphs/name/pixowl/the-sandb
 const tokenAddress = process.env.NODE_ENV == 'production' ? process.env.DROP1_ADDRESS : process.env.DROP1_ADDRESS_TEST;
 const galaTokenAddress = process.env.NODE_ENV == 'production' ? process.env.GALA_ADDRESS : process.env.GALA_ADDRESS_TEST;
 const rklTokenAddress = process.env.RKL_ADDRESS;
-const bbAddress = process.env.NODE_ENV == 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+const bbAddress = process.env.NODE_ENV == 'production' ? process.env.BB_ADDRESS : process.env.BB_TEST_ADDRESS;
 const serumAddress = process.env.NODE_ENV == 'production' ? process.env.SERUM_ADDRESS : process.env.SERUM_TEST_ADDRESS;
+const bbhAddress = process.env.NODE_ENV == 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
 
 const sandboxTokenId = "55464657044963196816950587289035428064568320970692304673817341489688352917504";
 
@@ -28,21 +29,71 @@ const getNft = async (request, response) => {
     const {
       wallet
     } = request.params;
-    const drop1Data = await getDropData(wallet);
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
-    const galaData = await getGalaData(wallet);
-    const rklData = await getRklData(wallet);
-    const bbData = await getBasketballData(wallet)
-    const serumData = await getSerumData(wallet)
-    // const galaData = [];
-    const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData, ...rklData, ...bbData, ...serumData];
+    const ethData = await getNftData(wallet);
+    const nftData = [...ethData, ...decentData, ...sandboxData];
+    
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 
+const getPlatform = (address) => {
+  let platform = "";
+  switch(address.toLowerCase()) {
+    case tokenAddress.toLowerCase():
+      platform = 'Drop1Nft';
+      break;
+    case galaTokenAddress.toLowerCase():
+      platform = 'gala';
+      break;
+    case rklTokenAddress.toLowerCase():
+      platform = 'rkl';
+      break;
+    case bbAddress.toLowerCase():
+      platform = 'Basketball';
+      break;
+    case serumAddress.toLowerCase():
+      platform = 'Serum';
+      break;
+    case bbhAddress.toLowerCase():
+      platform = 'Basketballhead';
+      break;
+  }
+  return platform;
+}
+
+const getNftData = async (wallet) => {
+  const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
+  
+  const results = [];
+  let cursor = "";
+  let progress = true;
+  while(progress) {
+    const options = { chain: chain, address: wallet, token_addresses: [tokenAddress, galaTokenAddress, rklTokenAddress, bbAddress, serumAddress, bbhAddress], cursor: cursor };
+    const nfts = await Moralis.Web3API.account.getNFTs(options);
+    await Promise.all(nfts.result.map(result => {
+        results.push({
+            wallet: wallet,
+            address: result.owner_of,
+            tokenId: result.token_id,
+            quantity: result.amount,
+            uri: result.token_uri,
+            metadata: result.metadata,
+            platform: getPlatform(result.token_address)
+        })
+    }))
+    if(nfts.total < (nfts.page + 1) * nfts.page_size){
+        progress = false;
+    }
+    else {
+      cursor = nfts.cursor;
+    }
+  }
+  return results;
+}
 const getDropData = async (wallet) => {
   try{
     const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
@@ -200,8 +251,10 @@ const getBasketballData = async (wallet) => {
   try{
     const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
     const options = { chain: chain, address: wallet, token_address: bbAddress};
+    console.log(options)
     const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
     if(nfts.result) {
+      console.log(nfts.result)
       const data = nfts.result.map(asset => {
         return {
           wallet: wallet,
@@ -230,6 +283,30 @@ const getSerumData = async (wallet) => {
         return {
           wallet: wallet,
           platform: "Serum",
+          tokenId: asset.token_id,
+          uri: asset.token_uri,
+          quantity: asset.amount
+        }
+      })
+      return data;
+    }
+    return [];
+  } catch(err) {
+    console.log(err)
+    return [];
+  }
+}
+
+const getBBHData = async (wallet) => {
+  try{
+    const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
+    const options = { chain: chain, address: wallet, token_address: bbhAddress};
+    const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
+    if(nfts.result) {
+      const data = nfts.result.map(asset => {
+        return {
+          wallet: wallet,
+          platform: "Basketballhead",
           tokenId: asset.token_id,
           uri: asset.token_uri,
           quantity: asset.amount

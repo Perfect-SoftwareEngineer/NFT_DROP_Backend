@@ -7,6 +7,12 @@ const {verifySignature} = require('../Service/AuthService');
 
 require("dotenv").config();
 
+const validateEmail = (email) => {
+  return email.match(
+    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  );
+};
+
 
 const signup = async (request, response) => {
   try {
@@ -88,9 +94,35 @@ const get = async (request, response) => {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
+
+const registerEmail = async (request, response) => {
+  try {
+    const { wallet, email } = request.body;
+    
+    if(wallet.toLowerCase() != request.wallet.toLowerCase()) {
+      return response.status(HttpStatusCodes.BAD_REQUEST).send("User wallet not matched");
+    }
+
+    const user = await userModel.find({ wallet: wallet.toLowerCase() });
+    if(user.length == 0) 
+      return response.status(HttpStatusCodes.BAD_REQUEST).send('user not exisit');
+    
+    if(!validateEmail(email)) 
+      return response.status(HttpStatusCodes.BAD_REQUEST).send('invalid email format');
+
+    user[0]['email'] = email;
+    await user[0].save();
+    return response.status(HttpStatusCodes.OK).send(user);
+  } catch (err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
+
 module.exports = {
   signin,
   signup,
   create,
-  get
+  get,
+  registerEmail
 }

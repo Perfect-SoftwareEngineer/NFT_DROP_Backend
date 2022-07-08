@@ -11,7 +11,7 @@ const dotenv = require('dotenv');
 
 const { currentWarriorsMatchModel } = require("../src/Model/CurrentWarriorsMatchModel");
 const { freeBBModel } = require("../src/Model/FreeBBModel");
-const BBHABI = require('../src/config/ABI/BasketBallHead');
+const BBABI = require('../src/config/ABI/BasketBall');
 
 dotenv.config({ path: './../.env'});
 
@@ -89,13 +89,13 @@ const getBbRoot = async (gameId) => {
 
 async function setRootKey(gameId, rootKey, amount) {
 
-    const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+    const contractAddress = process.env.NODE_ENV === 'production' ? process.env.BB_ADDRESS : process.env.BB_TEST_ADDRESS;
     const network = process.env.NODE_ENV === 'production' ? 'mainnet' : 'rinkeby';
 
     const web3 = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${process.env.INFURA_KEY}`));
     web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY)
     const from = web3.eth.accounts.wallet[0].address;
-    const contract = new web3.eth.Contract(BBHABI, contractAddress, { from });
+    const contract = new web3.eth.Contract(BBABI, contractAddress, { from });
 
     try{
       const gasLimit = await contract.methods.setGameRootKey(gameId, rootKey, amount).estimateGas();

@@ -139,6 +139,7 @@ const bbCommunityClaim = async (request, response) => {
 
 const getSerumGCFRoot = async (request, response) => {
     const gcfData = await serumGCFSnapshotModel.find({}).sort({createdAt: 1});
+    console.log(gcfData[0], gcfData[2581])
     const merkleTree = await initMerkleMultiple(gcfData, "Serum");
     const rootHash = merkleTree.getHexRoot();
     return response.status(HttpStatusCodes.OK).send(rootHash);

@@ -1,16 +1,30 @@
 
 const Chance = require('chance');
-const path = require('path');
+
 const fs = require('fs');
+
+require("dotenv").config();
+
+
 const {traitAssetsModel} = require('../Model/TraitAssetsModel');
+const {metadataModel} = require('../Model/MetadataBBHModel');
 const traitJson = require('../constants/Trait.json');
 const serumJson = require('../constants/Serum.json');
+const {processJob} = require('./RedisService');
+const {uploadImage} = require('./S3Service');
+const {QueueService} = require('./QueueService');
 
 class MixologyService {
     constructor(){
         this.chance = new Chance();
+        this.queueOne = new QueueService(1);
+        this.queueTwo = new QueueService(2);
+        this.lastQueue = 0;
+
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
+
+        this.mixImageContent = fs.readFileSync(`./src/constants/mix.png`);
     }
 
     // internal 
@@ -28,8 +42,31 @@ class MixologyService {
         return rarity;
     }
 
-    generateMetadata(data){
+    generateTokenId() {
+        let minm = 10000000000000000000;
+        let maxm = 99999999999999999999;
+        return parseInt(Math.floor(Math
+        .random() * (maxm - minm + 1)) + minm);
+    }
+
+    saveMetadata(tokenId, imageMetadata) {
+
+        const metadata = new metadataModel({
+            name: `Basketball Headz #${tokenId}`,
+            description: "Curry brand is unifying basketball and positive communities across the Metaverse.\nIntroducing Basketball Headz - a limited-edition 3D generative NFT project that unifies multiple communities to mix and match your favorite NFT traits.\nBy owning this NFT, you agree to all the terms and conditions under lab.currybrand.com/legal/nft-ownership-agreement",
+            image: "",
+            external_url: "",
+            animation_url: "https://luna-bucket.s3.us-east-2.amazonaws.com/mixology.gif",
+            tokenId: tokenId,
+            fee_recipient: process.env.ADMIN_WALLET,
+            attributes: imageMetadata
+        });
+        metadata.save();
+    }
+
+    generateImageMetadata(data){
         const attributes = []
+        const attributesDb = []
         for (const key in data) {
             const traitType = traitJson[key].replace(/ /gi, '_');
             const serumId = data[key]['serumId']
@@ -40,9 +77,13 @@ class MixologyService {
                 'trait_type': traitType,
                 'value': fullName
             })
+            attributesDb.push({
+                'trait_type': traitJson[key],
+                'value': data[key]['name']
+            })
         }
-        const json = {"attributes" : attributes};
-        fs.writeFileSync("metadata.json", JSON.stringify(json));
+        const json = {attributes, attributesDb};
+        return json;
     }
 
     calcTraitCounts (serumIds) {
@@ -69,7 +110,6 @@ class MixologyService {
                 }
                 break;
         }
-        const rarity = this.randomRarityByWeight()
             
         return traitCounts;
     }
@@ -83,26 +123,31 @@ class MixologyService {
         return traits;
     }
 
-    getTraitAssetName(serumId, traitId, rarity){
-        console.log(serumId, traitId, rarity)
-        const datas = this.traitAssets.filter(asset => asset['serum_id'] == serumId && asset['trait_id'] == traitId && asset['rarity'] == rarity)
-        const asset = this.random(datas);
-        if (asset) 
-            return asset.name;
-        else 
-            return;
+    getTraitAssetName(serumId, traitIds){
+        let finished = false;
+        const get = () => {
+            const rarity = this.randomRarityByWeight();
+            const datas = this.traitAssets.filter(asset => asset['serum_id'] == serumId && asset['rarity'] == rarity && traitIds.includes(asset['trait_id']))
+            const asset = this.random(datas);
+            if (asset) {
+                return {name: asset['name'], traitId: asset['trait_id'], rarity: rarity};
+            }
+        }
+        while (!finished) {
+            const result = get();
+            if(result) {
+                finished = true;
+                return result;
+            }
+        }
     }
 
     async getTraitAssetsBySerum(serumIds, traitCounts) {
-        let traitIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+        let traitIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
         let result = {}
         for(let i = 0; i < serumIds.length; i ++) {
-            let serumTraitIds = this.getTriatForSerum(serumIds[i])
             for (let j = 0 ; j < traitCounts[i]; j ++) {
-                const rarity = this.randomRarityByWeight();
-                const traitId = this.random(serumTraitIds);
-                serumTraitIds = this.removeFromArray(traitId, serumTraitIds);
-                const name = this.getTraitAssetName(serumIds[i], traitId, rarity)
+                const {name, traitId, rarity} = this.getTraitAssetName(serumIds[i], traitIds);
                 if(name) {
                     traitIds = this.removeFromArray(traitId, traitIds);
                     result[traitId] = {
@@ -110,27 +155,45 @@ class MixologyService {
                         'serumId': serumIds[i].toString(),
                         'rarity': rarity
                     }
+                    // console.log(name, serumIds[i].toString(), rarity)
                 }
             }
         }
 
-        for(let i = 0; i < traitIds.length; i ++) {
-            const rarity = this.randomRarityByWeight();
-            const name = this.getTraitAssetName('12', traitIds[i], rarity)
-            result[traitIds[i]] = {
+        while(traitIds.length > 0) {
+            const {name, traitId, rarity} = this.getTraitAssetName('12', traitIds)
+            traitIds = this.removeFromArray(traitId, traitIds);
+            result[traitId] = {
                 'name': name,
                 'serumId': '12',
                 'rarity': rarity
             }
         }
-        this.generateMetadata(result)
+        const metadata = this.generateImageMetadata(result)
+        return metadata;
     }
     // external
-    async createMetadata (request) {
-        const {wallet, serumIds} = request.body;
+
+    addJob(tokenId, attributes) {
+        switch(this.lastQueue + 1){
+            case 1 :
+                this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
+                break;
+            case 2 :
+                this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
+                break;
+        }
+        this.lastQueue = (this.lastQueue + 1) % 2;
+    }
+    async createMetadata (wallet, serumIds) {
+        const tokenId = this.generateTokenId();
         const traitCounts = this.calcTraitCounts(serumIds);
-        console.log(traitCounts)
-        this.getTraitAssetsBySerum(serumIds, traitCounts)
+
+        const metadata = await this.getTraitAssetsBySerum(serumIds, traitCounts)
+        this.saveMetadata(tokenId, metadata.attributesDb);
+        this.addJob(tokenId, metadata.attributes)
+
+        return tokenId;
     }
 }
 
