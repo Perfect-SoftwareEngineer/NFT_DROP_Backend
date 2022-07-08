@@ -49,7 +49,7 @@ class QueueService {
                 done();
             }
             else{
-                logger.error(`Queue ${this.data.serverNumber} server is not free now.`);
+                logger.error(`Queue ${job.data.serverNumber} server is not free now.`);
                 done(true);
             }
         } catch (e) {
