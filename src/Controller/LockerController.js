@@ -29,22 +29,71 @@ const getNft = async (request, response) => {
     const {
       wallet
     } = request.params;
-    const drop1Data = await getDropData(wallet);
     const decentData = await getDecentralandData(wallet);
     const sandboxData = await getSandboxData(wallet);
-    const galaData = await getGalaData(wallet);
-    const rklData = await getRklData(wallet);
-    const bbData = await getBasketballData(wallet)
-    const serumData = await getSerumData(wallet)
-    const bbhData = await getBBHData(wallet)
-    // const galaData = [];
-    const nftData = [...drop1Data, ...decentData, ...sandboxData, ...galaData, ...rklData, ...bbData, ...serumData, ...bbhData];
+    const ethData = await getNftData(wallet);
+    const nftData = [...ethData, ...decentData, ...sandboxData];
+    
     return response.status(HttpStatusCodes.OK).send(nftData);
   } catch(err) {
     return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
   }
 }
 
+const getPlatform = (address) => {
+  let platform = "";
+  switch(address.toLowerCase()) {
+    case tokenAddress.toLowerCase():
+      platform = 'Drop1Nft';
+      break;
+    case galaTokenAddress.toLowerCase():
+      platform = 'gala';
+      break;
+    case rklTokenAddress.toLowerCase():
+      platform = 'rkl';
+      break;
+    case bbAddress.toLowerCase():
+      platform = 'Basketball';
+      break;
+    case serumAddress.toLowerCase():
+      platform = 'Serum';
+      break;
+    case bbhAddress.toLowerCase():
+      platform = 'Basketballhead';
+      break;
+  }
+  return platform;
+}
+
+const getNftData = async (wallet) => {
+  const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
+  
+  const results = [];
+  let cursor = "";
+  let progress = true;
+  while(progress) {
+    const options = { chain: chain, address: wallet, token_addresses: [tokenAddress, galaTokenAddress, rklTokenAddress, bbAddress, serumAddress, bbhAddress], cursor: cursor };
+    const nfts = await Moralis.Web3API.account.getNFTs(options);
+    await Promise.all(nfts.result.map(result => {
+        results.push({
+            wallet: wallet,
+            address: result.owner_of,
+            tokenId: result.token_id,
+            quantity: result.amount,
+            uri: result.token_uri,
+            metadata: result.metadata,
+            platfrom: getPlatform(result.token_address)
+        })
+    }))
+    if(nfts.total < (nfts.page + 1) * nfts.page_size){
+        progress = false;
+    }
+    else {
+      cursor = nfts.cursor;
+    }
+  }
+  return results;
+}
 const getDropData = async (wallet) => {
   try{
     const chain = process.env.NODE_ENV == 'production' ? "polygon" : "mumbai";
@@ -202,8 +251,10 @@ const getBasketballData = async (wallet) => {
   try{
     const chain = process.env.NODE_ENV == 'production' ? "eth" : "rinkeby";
     const options = { chain: chain, address: wallet, token_address: bbAddress};
+    console.log(options)
     const nfts = await Moralis.Web3API.account.getNFTsForContract(options);
     if(nfts.result) {
+      console.log(nfts.result)
       const data = nfts.result.map(asset => {
         return {
           wallet: wallet,

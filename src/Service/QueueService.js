@@ -8,6 +8,9 @@ require("dotenv").config();
 const {metadataModel} = require('../Model/MetadataBBHModel');
 const {userModel} = require('../Model/UserModel');
 
+const {getOwner} = require('./Web3Service');
+const {sendEmail} = require('./EmailService');
+
 
 class QueueService {
     constructor(serverNumber) {
@@ -71,6 +74,16 @@ class QueueService {
         metadata[0].image = image;
         metadata[0].animation_url = "";
         await metadata[0].save();
+
+        const wallet = await getOwner(tokenId.toString());
+
+        if(wallet && wallet.length == 42) {
+            const user = await userModel.find({ wallet: wallet.toLowerCase() });
+
+            if(user.length > 0 && user[0].email != "") {
+                sendEmail(user[0].email);
+            }
+        }
     }
 }
 

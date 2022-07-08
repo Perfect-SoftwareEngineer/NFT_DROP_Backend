@@ -1,6 +1,7 @@
 const Web3 = require("web3");
 const BBABI = require('../config/ABI/BasketBall');
 const serumABI = require('../config/ABI/Serum');
+const BBHABI = require('../config/ABI/BasketBallHead');
 var {freeBBModel} = require('../Model/FreeBBModel')
 
 require("dotenv").config();
@@ -47,9 +48,21 @@ async function checkBalance(wallet, serumIds) {
     }
 
     return true;
-
 }
+
+async function getOwner(tokenId) {
+    try{
+        const bbhAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+        const bbhContract = new web3.eth.Contract(BBHABI, bbhAddress);
+        const owner = await bbhContract.methods.ownerOf(tokenId).call();
+        return owner;
+    } catch(err) {
+        return;
+    }
+}
+
 module.exports = {
     watchClaim,
-    checkBalance
+    checkBalance,
+    getOwner
 }

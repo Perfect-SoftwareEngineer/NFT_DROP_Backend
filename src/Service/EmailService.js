@@ -7,10 +7,7 @@ const sendEmail = (email)=> {
   let emailData = {
     to: email,
     from: contactEmail,
-    templateId: process.env.SENDGRID_TRANSACTION_ID,
-    dynamic_template_data: {
-      "succeed": "You avatar successfully generated."
-    }
+    templateId: process.env.SENDGRID_TRANSACTION_ID
   }
   sgMail.send(emailData);
 }
