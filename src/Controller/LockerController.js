@@ -82,7 +82,7 @@ const getNftData = async (wallet) => {
             quantity: result.amount,
             uri: result.token_uri,
             metadata: result.metadata,
-            platfrom: getPlatform(result.token_address)
+            platform: getPlatform(result.token_address)
         })
     }))
     if(nfts.total < (nfts.page + 1) * nfts.page_size){
