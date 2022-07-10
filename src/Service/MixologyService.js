@@ -17,8 +17,8 @@ const {QueueService} = require('./QueueService');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
-        this.queueOne = new QueueService(1);
-        this.queueTwo = new QueueService(2);
+        // this.queueOne = new QueueService(1);
+        // this.queueTwo = new QueueService(2);
         this.queueThree = new QueueService(3);
         this.queueFour = new QueueService(4);
         this.lastQueue = 0;
@@ -194,10 +194,10 @@ class MixologyService {
     addJob(tokenId, attributes) {
         switch(this.lastQueue + 1){
             case 1 :
-                this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
+                this.queueThree.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
                 break;
             case 2 :
-                this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
+                this.queueFour.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
                 break;
         }
         this.lastQueue = (this.lastQueue + 1) % 2;
@@ -205,7 +205,7 @@ class MixologyService {
 
     addFailedJob(tokenId, attributes, index) {
         if(index % 2 == 0)
-            this.queueThree.addJob(tokenId, attributes, 3, process.env.AVATAR_SERVER_TREE_URL);
+            this.queueThree.addJob(tokenId, attributes, 3, process.env.AVATAR_SERVER_THREE_URL);
         else
             this.queueFour.addJob(tokenId, attributes, 4, process.env.AVATAR_SERVER_FOUR_URL);
     }
