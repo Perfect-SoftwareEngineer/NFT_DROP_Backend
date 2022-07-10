@@ -21,7 +21,7 @@ class QueueService {
 
         this.queue = new Queue(`3d rendering ${serverNumber}`, { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
 
-        this.queue.process(this.processJob)
+        // this.queue.process(this.processJob)
 
         this.queue.on('completed', (job) => {
             this.logger.info(`Queue ${serverNumber}'s job ${job.id} completed, token id ${job.data.tokenId}`);
@@ -40,26 +40,19 @@ class QueueService {
         logger.level = "all";
         logger.info(`Queue ${job.data.serverNumber}'s job ${job.id} is runnig, token id ${job.data.tokenId}`);
         try {
-            const result = await axios.get(`${job.data.serverUrl}/status`);
-            if(!result.data.running){
-                await axios.post(`${job.data.serverUrl}/create-avatar`, {
-                    id: job.data.tokenId,
-                    metadata: job.data.metadata
-                });
-                done();
-            }
-            else{
-                logger.error(`Queue ${job.data.serverNumber} server is not free now.`);
-                done(true);
-            }
+            await axios.post(`${job.data.serverUrl}/create-avatar`, {
+                id: job.data.tokenId,
+                metadata: job.data.metadata
+            });
+            done();
         } catch (e) {
             logger.error(e.response.status);
             done(true);
         }
     };
 
-    addJob (tokenId, attributes, serverNumber, serverUrl) {
-        this.queue.add({tokenId, metadata: {'attributes': attributes}, serverNumber, serverUrl}, {
+    async addJob (tokenId, attributes, serverNumber, serverUrl) {
+        await this.queue.add({tokenId, metadata: {'attributes': attributes}, serverNumber, serverUrl}, {
             attempts: 3 
         });
         this.logger.info(`Job is added to queue ${this.serverNumber}, token id ${tokenId}`);

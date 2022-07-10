@@ -22,6 +22,17 @@ const create = async (request, response) => {
   }
 }
 
+const addFailedIds = async (request, response) => {
+  const {tokenIds} = request.body;
+  try{
+    await mixologyService.addFailedIds(tokenIds);
+    return response.status(HttpStatusCodes.OK).send("done");
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
 module.exports = {
-  create
+  create,
+  addFailedIds
 }
