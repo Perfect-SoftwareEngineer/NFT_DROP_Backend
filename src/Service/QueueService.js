@@ -21,7 +21,7 @@ class QueueService {
 
         this.queue = new Queue(`3d rendering ${serverNumber}`, { redis: { port: process.env.REDIS_PORT, host: process.env.REDIS_URL, password: process.env.REDIS_PASS } });
 
-        // this.queue.process(this.processJob)
+        this.queue.process(this.processJob)
 
         this.queue.on('completed', (job) => {
             this.logger.info(`Queue ${serverNumber}'s job ${job.id} completed, token id ${job.data.tokenId}`);
