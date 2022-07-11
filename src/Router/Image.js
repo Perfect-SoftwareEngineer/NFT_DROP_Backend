@@ -5,11 +5,12 @@ require("dotenv").config();
 
 
 router.post('/upload',  async (request, response) => {
+    const folder = '3d-avatar'
     const image = request.files.file.data;
     const name = request.files.file.name;
     const type = request.files.file.mimetype;
     console.log({type, name})
-    upload(image, name, type, response);
+    upload(image, folder, name, type, response);
 })
 
 module.exports = router;

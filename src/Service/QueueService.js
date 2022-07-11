@@ -40,26 +40,19 @@ class QueueService {
         logger.level = "all";
         logger.info(`Queue ${job.data.serverNumber}'s job ${job.id} is runnig, token id ${job.data.tokenId}`);
         try {
-            const result = await axios.get(`${job.data.serverUrl}/status`);
-            if(!result.data.running){
-                await axios.post(`${job.data.serverUrl}/create-avatar`, {
-                    id: job.data.tokenId,
-                    metadata: job.data.metadata
-                });
-                done();
-            }
-            else{
-                logger.error(`Queue ${job.data.serverNumber} server is not free now.`);
-                done(true);
-            }
+            await axios.post(`${job.data.serverUrl}/create-avatar`, {
+                id: job.data.tokenId,
+                metadata: job.data.metadata
+            });
+            done();
         } catch (e) {
             logger.error(e.response.status);
             done(true);
         }
     };
 
-    addJob (tokenId, attributes, serverNumber, serverUrl) {
-        this.queue.add({tokenId, metadata: {'attributes': attributes}, serverNumber, serverUrl}, {
+    async addJob (tokenId, attributes, serverNumber, serverUrl) {
+        await this.queue.add({tokenId, metadata: {'attributes': attributes}, serverNumber, serverUrl}, {
             attempts: 3 
         });
         this.logger.info(`Job is added to queue ${this.serverNumber}, token id ${tokenId}`);
@@ -80,7 +73,7 @@ class QueueService {
         if(wallet && wallet.length == 42) {
             const user = await userModel.find({ wallet: wallet.toLowerCase() });
 
-            if(user.length > 0 && user[0].email != "") {
+            if(user.length > 0 && user[0].email && user[0].email != "") {
                 sendEmail(user[0].email);
             }
         }

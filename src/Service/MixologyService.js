@@ -19,12 +19,29 @@ class MixologyService {
         this.chance = new Chance();
         this.queueOne = new QueueService(1);
         this.queueTwo = new QueueService(2);
+        this.queueThree = new QueueService(3);
+        this.queueFour = new QueueService(4);
         this.lastQueue = 0;
 
         traitAssetsModel.find({})
         .then(result => this.traitAssets = result)
 
         this.mixImageContent = fs.readFileSync(`./src/constants/mix.png`);
+        this.traitIds = {
+            "Eyes": "1",
+            "Background": "2",
+            "Face Accessories": "3",
+            "Ear Accessories": "4",
+            "Neck Accessories": "5",
+            "Mouth": "6",
+            "Socks": "7",
+            "Head Accessories": "8",
+            "Torso": "9",
+            "Pants": "10",
+            "Shoes": "11",
+            "Hand Accessories": "12",
+            "Platform": "13"
+        }
     }
 
     // internal 
@@ -185,6 +202,14 @@ class MixologyService {
         }
         this.lastQueue = (this.lastQueue + 1) % 2;
     }
+
+    addFailedJob(tokenId, attributes, index) {
+        if(index % 2 == 0)
+            this.queueThree.addJob(tokenId, attributes, 3, process.env.AVATAR_SERVER_THREE_URL);
+        else
+            this.queueFour.addJob(tokenId, attributes, 4, process.env.AVATAR_SERVER_FOUR_URL);
+    }
+
     async createMetadata (wallet, serumIds) {
         const tokenId = this.generateTokenId();
         const traitCounts = this.calcTraitCounts(serumIds);
@@ -194,6 +219,32 @@ class MixologyService {
         this.addJob(tokenId, metadata.attributes)
 
         return tokenId;
+    }
+
+    async addFailedIds (tokenIds) {
+        try{
+        for(let i = 0 ; i < tokenIds.length; i ++) {
+            let attributes = [];
+            let metadata = await metadataModel.find({tokenId: tokenIds[i]});
+            if(metadata.length > 0){
+                metadata[0]['attributes'].map(data => {
+                    const asset = this.traitAssets.filter(asset => asset['trait_id'] == this.traitIds[data['trait_type']] && asset['name'].toLowerCase() == data['value'].toLowerCase())
+                    if(asset.length > 0) {
+                        const traitType = data['trait_type'].replace(/ /gi, '_');
+                        const serum = serumJson[asset[0]['serum_id']]
+                        const rarity =  asset[0]['rarity']
+                        const name = asset[0]['name'].replace(/ /gi, '-');
+                        const fullName = serum.replace(' ','').toLowerCase() + '_' +  data['trait_type'].replace(' ','').toLowerCase() + '_' + name + '_' + rarity;
+                        attributes.push({
+                            'trait_type': traitType,
+                            'value': fullName
+                        })
+                    }
+                })
+            }
+            this.addFailedJob(tokenIds[i], attributes, i)
+        }
+    }catch(err){console.log(err)}
     }
 }
 
