@@ -73,7 +73,7 @@ class QueueService {
         if(wallet && wallet.length == 42) {
             const user = await userModel.find({ wallet: wallet.toLowerCase() });
 
-            if(user.length > 0 && user[0].email != "") {
+            if(user.length > 0 && user[0].email && user[0].email != "") {
                 sendEmail(user[0].email);
             }
         }

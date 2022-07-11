@@ -17,8 +17,8 @@ const {QueueService} = require('./QueueService');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
-        // this.queueOne = new QueueService(1);
-        // this.queueTwo = new QueueService(2);
+        this.queueOne = new QueueService(1);
+        this.queueTwo = new QueueService(2);
         this.queueThree = new QueueService(3);
         this.queueFour = new QueueService(4);
         this.lastQueue = 0;
@@ -194,10 +194,10 @@ class MixologyService {
     addJob(tokenId, attributes) {
         switch(this.lastQueue + 1){
             case 1 :
-                this.queueThree.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
+                this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
                 break;
             case 2 :
-                this.queueFour.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
+                this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
                 break;
         }
         this.lastQueue = (this.lastQueue + 1) % 2;

@@ -10,11 +10,12 @@ AWS.config.update({
 const s3 = new AWS.S3()
 
 
-const upload = (content, name, type, response) => {
+const upload = (content, folder, name, type, response) => {
     try{
+        console.log(`${folder}/${name}`)
         s3.upload({
             Bucket: bucket,
-            Key: name,
+            Key: `${folder}/${name}`,
             Body: content,
             ACL: 'public-read',
             ContentEncoding: 'base64',
