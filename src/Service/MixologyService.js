@@ -20,7 +20,6 @@ class MixologyService {
         this.queueOne = new QueueService(1);
         this.queueTwo = new QueueService(2);
         this.queueThree = new QueueService(3);
-        this.queueFour = new QueueService(4);
         this.lastQueue = 0;
 
         traitAssetsModel.find({})
@@ -203,11 +202,8 @@ class MixologyService {
         this.lastQueue = (this.lastQueue + 1) % 2;
     }
 
-    addFailedJob(tokenId, attributes, index) {
-        if(index % 2 == 0)
-            this.queueThree.addJob(tokenId, attributes, 3, process.env.AVATAR_SERVER_THREE_URL);
-        else
-            this.queueFour.addJob(tokenId, attributes, 4, process.env.AVATAR_SERVER_FOUR_URL);
+    addFailedJob(tokenId, attributes) {
+        this.queueThree.addJob(tokenId, attributes, 3, process.env.AVATAR_SERVER_THREE_URL);
     }
 
     async createMetadata (wallet, serumIds) {
@@ -242,7 +238,7 @@ class MixologyService {
                     }
                 })
             }
-            this.addFailedJob(tokenIds[i], attributes, i)
+            this.addFailedJob(tokenIds[i], attributes)
         }
     }catch(err){console.log(err)}
     }
@@ -255,7 +251,7 @@ class MixologyService {
                 return data['tokenId'];
         }))
         tokenIds = tokenIds.filter(function(x) {
-            return x !== undefined;
+            return x != undefined;
         });
         return tokenIds;
     }
