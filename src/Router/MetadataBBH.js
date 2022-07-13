@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var {get} = require('../Controller/MetadataBBHController');
+var {get, changeName} = require('../Controller/MetadataBBHController');
 var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
 
 
@@ -73,6 +73,10 @@ var MiddlewareAuth = require('../Middleware/MiddlewareAuth')
  */
 router.get('/get/:tokenId', async(request, response) => {
     get(request, response);
+});
+
+router.post('/change_name', MiddlewareAuth, async(request, response) => {
+    changeName(request, response);
 });
 
 

@@ -57,12 +57,28 @@ async function getOwner(tokenId) {
         const owner = await bbhContract.methods.ownerOf(tokenId).call();
         return owner;
     } catch(err) {
-        return;
+        return "0x";
+    }
+}
+
+async function exists(tokenId) {
+    try{
+        const network = process.env.NODE_ENV === 'production' ? 'mainnet' : 'rinkeby';
+
+        const web3_ = new Web3(new Web3.providers.HttpProvider(`https://${network}.infura.io/v3/${process.env.INFURA_KEY}`));
+        const bbhAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+        const bbhContract = new web3_.eth.Contract(BBHABI, bbhAddress);
+        const result = await bbhContract.methods.exists(tokenId).call();
+        return result;
+    } catch(err) {
+        console.log(err)
+        return false;
     }
 }
 
 module.exports = {
     watchClaim,
     checkBalance,
-    getOwner
+    getOwner,
+    exists
 }

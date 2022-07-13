@@ -32,7 +32,17 @@ const addFailedIds = async (request, response) => {
   }
 }
 
+const getFailedIds = async (request, response) => {
+  try{
+    const tokenIds = await mixologyService.getFailedIds();
+    return response.status(HttpStatusCodes.OK).send(tokenIds);
+  } catch(err) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(err);
+  }
+}
+
 module.exports = {
   create,
-  addFailedIds
+  addFailedIds,
+  getFailedIds
 }
