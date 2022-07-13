@@ -13,7 +13,7 @@ const serumJson = require('../constants/Serum.json');
 const {processJob} = require('./RedisService');
 const {uploadImage} = require('./S3Service');
 const {QueueService} = require('./QueueService');
-
+const {exists} = require('./Web3Service');
 class MixologyService {
     constructor(){
         this.chance = new Chance();
@@ -245,6 +245,19 @@ class MixologyService {
             this.addFailedJob(tokenIds[i], attributes, i)
         }
     }catch(err){console.log(err)}
+    }
+
+    async getFailedIds () {
+        let metadata = await metadataModel.find({image: ""});
+        let tokenIds = await Promise.all(metadata.map(async (data) => {
+            const exist = await exists(data['tokenId']);
+            if(exist)
+                return data['tokenId'];
+        }))
+        tokenIds = tokenIds.filter(function(x) {
+            return x !== undefined;
+        });
+        return tokenIds;
     }
 }
 

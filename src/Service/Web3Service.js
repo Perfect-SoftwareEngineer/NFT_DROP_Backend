@@ -57,12 +57,24 @@ async function getOwner(tokenId) {
         const owner = await bbhContract.methods.ownerOf(tokenId).call();
         return owner;
     } catch(err) {
-        return;
+        return "0x";
+    }
+}
+
+async function exists(tokenId) {
+    try{
+        const bbhAddress = process.env.NODE_ENV === 'production' ? process.env.BBH_ADDRESS : process.env.BBH_TEST_ADDRESS;
+        const bbhContract = new web3.eth.Contract(BBHABI, bbhAddress);
+        const result = await bbhContract.methods.exists(tokenId).call();
+        return result;
+    } catch(err) {
+        return false;
     }
 }
 
 module.exports = {
     watchClaim,
     checkBalance,
-    getOwner
+    getOwner,
+    exists
 }
