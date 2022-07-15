@@ -191,15 +191,17 @@ class MixologyService {
     // external
 
     addJob(tokenId, attributes) {
-        switch(this.lastQueue + 1){
-            case 1 :
-                this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
-                break;
-            case 2 :
-                this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
-                break;
-        }
-        this.lastQueue = (this.lastQueue + 1) % 2;
+        // switch(this.lastQueue + 1){
+        //     case 1 :
+        //         this.queueOne.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_ONE_URL);
+        //         break;
+        //     case 2 :
+        //         this.queueTwo.addJob(tokenId, attributes, this.lastQueue + 1, process.env.AVATAR_SERVER_TWO_URL);
+        //         break;
+        // }
+        // this.lastQueue = (this.lastQueue + 1) % 2;
+        
+        this.queueOne.addJob(tokenId, attributes, 1, process.env.AVATAR_SERVER_ONE_URL);
     }
 
     addFailedJob(tokenId, attributes) {
