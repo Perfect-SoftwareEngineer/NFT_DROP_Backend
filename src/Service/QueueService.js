@@ -61,7 +61,7 @@ class QueueService {
     async completeJob (tokenId) {
         let metadata = await metadataModel.find({tokenId: tokenId});
 
-        const s3Folder = process.env.NODE_ENV == 'production' ? '3d-avatar' : '3d-avatar-dev'
+        const s3Folder = process.env.NODE_ENV == 'production' ? '3d-avatar' : '3d-avatar'
         const image = `https://luna-bucket.s3.us-east-2.amazonaws.com/${s3Folder}/${tokenId}.png`
 
         metadata[0].image = image;
